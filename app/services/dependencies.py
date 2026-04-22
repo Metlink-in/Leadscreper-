@@ -5,7 +5,9 @@ from app.services.db_service import db_service
 async def get_current_user(request: Request):
     token = request.cookies.get("access_token")
     if not token:
+        print("[AUTH] No access_token cookie found in request")
         return None
+    print(f"[AUTH] Found access_token cookie (length: {len(token)})")
     
     if token.startswith("Bearer "):
         token = token[7:]

@@ -67,7 +67,7 @@ async def login(
         raise HTTPException(status_code=400, detail="Incorrect email or password")
     
     access_token = create_access_token(data={"sub": user["email"]})
-    response.set_cookie(key="access_token", value=f"Bearer {access_token}", httponly=True, path="/")
+    response.set_cookie(key="access_token", value=f"Bearer {access_token}", httponly=True, path="/", samesite="lax", secure=False)
     return {"message": "Login successful"}
 
 @app.get("/signup", response_class=HTMLResponse)
@@ -98,13 +98,13 @@ async def signup(
     await db_service.create_user(user_data)
     
     access_token = create_access_token(data={"sub": email})
-    response.set_cookie(key="access_token", value=f"Bearer {access_token}", httponly=True, path="/")
+    response.set_cookie(key="access_token", value=f"Bearer {access_token}", httponly=True, path="/", samesite="lax", secure=False)
     return {"message": "Signup successful"}
 
 @app.get("/logout")
 async def logout():
     response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
-    # Be very aggressive in clearing the cookie
+    print(f"[AUTH] Logout initiated. Clearing cookie 'access_token' for path '/'")
     response.delete_cookie(key="access_token", path="/")
     response.set_cookie(
         key="access_token", 
@@ -113,7 +113,8 @@ async def logout():
         expires=0, 
         path="/", 
         httponly=True,
-        samesite="lax"
+        samesite="lax",
+        secure=False
     )
     return response
 

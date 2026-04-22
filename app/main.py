@@ -175,6 +175,8 @@ async def health():
 
 @app.get("/api/credits")
 async def credits(user = Depends(require_user)):
-    # Use user's specific key if available, otherwise fallback to global
-    key = user.get("search_api_key") or settings.search_api_key
+    # Use only the user's specific key. Do not fallback to global env keys to prevent users from consuming admin credits.
+    key = user.get("search_api_key")
+    if not key:
+        return {"account_info": {"plan": "No Key", "credits_remaining": 0}, "credits": 0, "plan": "No Key"}
     return await get_account_info(override_key=key)

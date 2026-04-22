@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin - Credentials</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: "Inter", sans-serif;
+        background: #0a0a0a;
+        color: #ffffff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: #0a0a0a;
+      }
+
+      a {
+        color: #00ff88;
+        text-decoration: none;
+      }
+
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 24px 32px 20px;
+        border-bottom: 1px solid #111111;
+        background: #0a0a0a;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .brand .logo {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #00ff88, #0a0a0a);
+        display: grid;
+        place-items: center;
+        color: #0a0a0a;
+        font-family: "IBM Plex Mono", monospace;
+        font-weight: 700;
+      }
+
+      .brand h1 {
+        margin: 0;
+        font-size: 1.2rem;
+        letter-spacing: 0.06em;
+        font-family: "IBM Plex Mono", monospace;
+      }
+
+      .header-meta {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #888888;
+        font-size: 0.95rem;
+      }
+
+      .layout {
+        padding: 24px 32px 40px;
+        max-width: 600px;
+        margin: 0 auto;
+      }
+
+      .panel {
+        background: #111111;
+        border: 1px solid #1a1a1a;
+        border-radius: 24px;
+        padding: 24px;
+      }
+
+      .panel h2 {
+        margin: 0 0 18px;
+        font-family: "IBM Plex Mono", monospace;
+        font-weight: 700;
+      }
+
+      .field {
+        display: grid;
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+
+      .field label {
+        font-size: 0.9rem;
+        color: #bbbbbb;
+      }
+
+      .field input,
+      .field select {
+        width: 100%;
+        background: #0f0f0f;
+        border: 1px solid #1a1a1a;
+        border-radius: 14px;
+        color: #ffffff;
+        padding: 14px 16px;
+        font-size: 0.95rem;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        border: none;
+        border-radius: 14px;
+        background: #00ff88;
+        color: #0a0a0a;
+        font-weight: 700;
+        cursor: pointer;
+        padding: 14px 20px;
+        transition: transform 0.2s ease;
+      }
+
+      .button:hover {
+        transform: translateY(-1px);
+      }
+
+      .back-link {
+        display: inline-block;
+        margin-bottom: 20px;
+        color: #00ff88;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        <div class="logo">L</div>
+        <h1>Lead Intel</h1>
+      </div>
+      <div class="header-meta">
+        <span>Admin Panel</span>
+      </div>
+    </header>
+
+    <div class="layout">
+      <a href="/" class="back-link">&larr; Back to Dashboard</a>
+      <div class="panel">
+        <h2>Credentials Configuration</h2>
+        <form method="post" action="/admin/update">
+          <div class="field">
+            <label for="search_api_provider">Search API Provider</label>
+            <select id="search_api_provider" name="search_api_provider">
+              <option value="searchapi">SearchApi.io</option>
+              <option value="serpapi">SerpAPI</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="search_api_key">Search API Key</label>
+            <input type="password" id="search_api_key" name="search_api_key" placeholder="Enter your SearchApi.io key">
+          </div>
+          <div class="field">
+            <label for="serp_api_key">SerpAPI Key (if using SerpAPI)</label>
+            <input type="password" id="serp_api_key" name="serp_api_key" placeholder="Enter your SerpAPI key (if using SerpAPI)">
+          </div>
+          <div class="field">
+            <label for="gemini_api_key">Gemini API Key</label>
+            <input type="password" id="gemini_api_key" name="gemini_api_key" value="{{ settings.gemini_api_key or '' }}">
+          </div>
+          <div class="field">
+            <label for="openai_api_key">OpenAI API Key (optional)</label>
+            <input type="password" id="openai_api_key" name="openai_api_key" value="{{ settings.openai_api_key or '' }}">
+          </div>
+          <div class="field">
+            <label for="app_secret">App Secret</label>
+            <input type="password" id="app_secret" name="app_secret" value="{{ settings.app_secret or '' }}">
+          </div>
+          <button type="submit" class="button">Save Credentials</button>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>

@@ -112,6 +112,12 @@ async def _call_gemini_http(prompt: str, api_key: Optional[str] = None) -> Optio
                     await asyncio.sleep(retry_delay)
                     retry_delay *= 2
                     continue
+                
+                # Check for fatal client errors to avoid infinite slow loops on bad keys
+                if 400 <= response.status_code < 500 and response.status_code != 429:
+                    logger.error("[AI] Fatal client error %s from Gemini API. Key invalid or bad request.", response.status_code)
+                    break
+                    
                 response.raise_for_status()
                 data = response.json()
                 candidates = data.get("candidates", [])
@@ -121,8 +127,9 @@ async def _call_gemini_http(prompt: str, api_key: Optional[str] = None) -> Optio
         except Exception as e:
             if attempt == max_retries - 1:
                 logger.error("[AI] Gemini API failed: %s", e)
-            await asyncio.sleep(retry_delay)
-            retry_delay *= 2
+            else:
+                await asyncio.sleep(retry_delay)
+                retry_delay *= 2
     return None
 
 async def enrich_lead(lead: Lead, api_key: Optional[str] = None) -> Lead:

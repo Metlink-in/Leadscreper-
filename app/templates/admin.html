@@ -25,7 +25,10 @@
     body {
       margin: 0;
       min-height: 100vh;
-      background: #0a0a0a;
+      background: radial-gradient(circle at 80% 20%, #00ff8808, transparent), 
+                  radial-gradient(circle at 20% 80%, #00ff8805, transparent), 
+                  #0a0a0a;
+      background-attachment: fixed;
     }
 
     a {
@@ -83,10 +86,12 @@
     }
 
     .panel {
-      background: #111111;
-      border: 1px solid #1a1a1a;
+      background: rgba(17, 17, 17, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
       border-radius: 24px;
-      padding: 24px;
+      padding: 32px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     }
 
     .panel h2 {
@@ -124,16 +129,18 @@
       gap: 10px;
       border: none;
       border-radius: 14px;
-      background: #00ff88;
+      background: linear-gradient(135deg, #00ff88, #00cc6e);
       color: #0a0a0a;
       font-weight: 700;
       cursor: pointer;
-      padding: 14px 20px;
-      transition: transform 0.2s ease;
+      padding: 14px 28px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 15px rgba(0, 255, 136, 0.2);
     }
 
     .button:hover {
-      transform: translateY(-1px);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 255, 136, 0.3);
     }
 
     .back-link {
@@ -180,16 +187,16 @@
     <div class="layout">
     <a href="/" class="back-link">&larr; Back to Dashboard</a>
     
-    <div class="panel" style="margin-bottom: 24px; border-color: #00ff8833;">
-      <h2 style="color: #00ff88;">SearchApi.io Usage</h2>
-      <div id="creditInfo" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-        <div class="stat-card">
-          <div style="color: #888; font-size: 0.8rem;">Remaining Credits</div>
-          <div id="remainingCredits" style="font-size: 1.5rem; font-weight: 700; color: #00ff88;">Loading...</div>
+    <div class="panel" style="margin-bottom: 24px; border-color: rgba(0, 255, 136, 0.2);">
+      <h2 style="color: #00ff88; font-size: 1.1rem; margin-bottom: 24px;">SearchApi.io Usage</h2>
+      <div id="creditInfo" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+        <div class="stat-card" style="background: rgba(0, 255, 136, 0.05); padding: 20px; border-radius: 16px; border: 1px solid rgba(0, 255, 136, 0.1);">
+          <div style="color: #888; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Remaining Credits</div>
+          <div id="remainingCredits" style="font-size: 2rem; font-weight: 700; color: #00ff88; font-family: 'IBM Plex Mono', monospace;">Loading...</div>
         </div>
-        <div class="stat-card">
-          <div style="color: #888; font-size: 0.8rem;">Plan Type</div>
-          <div id="planType" style="font-size: 1.5rem; font-weight: 700; color: #ffffff;">Loading...</div>
+        <div class="stat-card" style="background: rgba(255, 255, 255, 0.02); padding: 20px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.05);">
+          <div style="color: #888; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Plan Type</div>
+          <div id="planType" style="font-size: 2rem; font-weight: 700; color: #ffffff; font-family: 'IBM Plex Mono', monospace;">Loading...</div>
         </div>
       </div>
     </div>

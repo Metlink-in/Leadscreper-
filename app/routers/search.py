@@ -33,8 +33,6 @@ async def search(request: SearchRequest, http_request: Request, user = Depends(r
     
     if not api_keys["search_api_key"]:
         raise HTTPException(status_code=400, detail="SearchAPI Key is missing. Please add it in your Settings.")
-    if request.enable_ai and not api_keys["gemini_api_key"]:
-        raise HTTPException(status_code=400, detail="Gemini API Key is missing. Please add it in your Settings to use AI enhancement.")
 
     try:
         max_results = min(request.max_results or settings.max_results_per_source, settings.max_results_per_source)

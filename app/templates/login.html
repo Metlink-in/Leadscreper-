@@ -292,7 +292,8 @@
           window.location.href = '/';
         } else {
           const data = await res.json();
-          errorMsg.textContent = data.detail || 'Invalid email or password';
+          errorMsg.innerText = data.traceback || data.detail || 'Invalid email or password';
+          errorMsg.style.whiteSpace = 'pre-wrap';
           errorMsg.style.display = 'block';
           submitBtn.textContent = 'Sign In';
           submitBtn.disabled = false;

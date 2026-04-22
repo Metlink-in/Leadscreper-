@@ -658,7 +658,7 @@
         <div class="header-meta">
           <a href="/history">History</a> | 
           <a href="/admin">Settings</a> | 
-          <a href="/logout" style="color: #ff4444; margin-left: 8px;">Logout</a>
+          <a href="/logout" onclick="logout(); return false;" style="color: #ff4444; margin-left: 8px;">Logout</a>
         </div>
       </div>
     </div>
@@ -1370,6 +1370,11 @@
       loadSearchFromHistory(sid);
     } else {
       renderLeads();
+    }
+    function logout() {
+      // Clear cookie client-side as well
+      document.cookie = "access_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+      window.location.href = "/logout";
     }
   </script>
 </body>

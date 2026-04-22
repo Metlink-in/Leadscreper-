@@ -12,6 +12,8 @@ from app.models.lead import Lead
 
 logger = logging.getLogger(__name__)
 
+_GEMINI_DEAD_KEYS = set()
+
 def _extract_json(text: str) -> str:
     """Robustly extract JSON from text, even if wrapped in markdown code blocks."""
     match = re.search(r'```json\s*(.*?)\s*```', text, re.DOTALL)
@@ -85,6 +87,9 @@ async def _call_gemini_http(prompt: str, api_key: Optional[str] = None) -> Optio
     if not effective_key:
         logger.warning("[AI] Gemini API key missing")
         return None
+        
+    if effective_key in _GEMINI_DEAD_KEYS:
+        return None
 
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={effective_key}"
     
@@ -116,6 +121,8 @@ async def _call_gemini_http(prompt: str, api_key: Optional[str] = None) -> Optio
                 # Check for fatal client errors to avoid infinite slow loops on bad keys
                 if 400 <= response.status_code < 500 and response.status_code != 429:
                     logger.error("[AI] Fatal client error %s from Gemini API. Key invalid or bad request.", response.status_code)
+                    if effective_key:
+                        _GEMINI_DEAD_KEYS.add(effective_key)
                     break
                     
                 response.raise_for_status()

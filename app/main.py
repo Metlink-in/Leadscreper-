@@ -104,7 +104,7 @@ async def signup(
 @app.get("/logout")
 async def logout(response: Response):
     response.delete_cookie("access_token")
-    return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
+    return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request, user = Depends(get_current_user)):

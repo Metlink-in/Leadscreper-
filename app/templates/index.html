@@ -1271,6 +1271,10 @@
         showToast("Select at least one category before searching.");
         return;
       }
+      if (state.selectedIndustries.size === 0) {
+        showToast("Select at least one industry before searching.");
+        return;
+      }
       const payload = {
         categories: Array.from(state.selectedCategories),
         industries: Array.from(state.selectedIndustries),

@@ -173,7 +173,12 @@ async def scrape_all(
                 )
                 
                 for res in results:
-                    if isinstance(res, list):
+                    if isinstance(res, Exception):
+                        from app.services.exceptions import APIError
+                        if isinstance(res, APIError):
+                            raise res
+                        logger.error("[SCRAPE] Warning: Ignored sub-fetch exception: %s", res)
+                    elif isinstance(res, list):
                         for item in res:
                             lead = _normalize_item(item, category, industry, country, city, keywords, user_id)
                             if lead: leads.append(lead)

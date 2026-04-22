@@ -4,6 +4,7 @@ from uuid import uuid4
 from datetime import datetime, timedelta
 from typing import Optional
 
+import os
 from fastapi import FastAPI, Form, Request, Depends, HTTPException, status, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -36,7 +37,8 @@ app.add_middleware(
 )
 
 # Templates
-templates = Jinja2Templates(directory="app/templates")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 
 @app.on_event("startup")
 async def startup_db_client():

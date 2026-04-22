@@ -71,6 +71,24 @@ def _guess_platform(url: Optional[str]) -> Optional[str]:
         return "Glassdoor"
     if "angel" in text:
         return "AngelList"
+    if "youtube" in text:
+        return "YouTube"
+    if "pinterest" in text:
+        return "Pinterest"
+    if "tiktok" in text:
+        return "TikTok"
+    if "github" in text:
+        return "GitHub"
+    if "crunchbase" in text:
+        return "Crunchbase"
+    if "facebook" in text:
+        return "Facebook"
+    if "twitter" in text or "x.com" in text:
+        return "Twitter/X"
+    if "instagram" in text:
+        return "Instagram"
+    if "reddit" in text:
+        return "Reddit"
     return None
 
 
@@ -110,6 +128,19 @@ def _make_base_lead(
         email = email or extracted_email
         phone = phone or extracted_phone
 
+    # If website is just a social profile, move it to post_url and clear website
+    followers = None
+    if website:
+        ws_lower = website.lower()
+        if "followers" in ws_lower:
+            followers = website.strip()
+            website = None
+        elif _guess_platform(website) or "posts" in ws_lower or " " in website.strip():
+            post_url = post_url or website
+            website = None
+        elif "." not in website:
+            website = None
+
     return Lead(
         id=uuid.uuid4().hex,
         name=name,
@@ -127,6 +158,7 @@ def _make_base_lead(
         outreach_angle=None,
         platform=platform,
         post_url=post_url,
+        followers=followers,
         scraped_at=datetime.utcnow(),
         keywords_matched=keywords_matched,
     )
@@ -205,19 +237,31 @@ def _normalize_job_item(item: Dict[str, object], category: int, industry: str, c
     )
 
 
-async def _scrape_category_one(industry: str, country: Optional[str], city: Optional[str], keywords: Optional[List[str]], max_results: int) -> List[Lead]:
+async def _scrape_category_one(industry: str, country: Optional[str], city: Optional[str], keywords: Optional[List[str]], platforms: Optional[List[str]], max_results: int) -> List[Lead]:
     query_location = _parse_source_terms(country, city)
+    platform_query = " OR ".join([f"site:{p}.com" for p in platforms]) if platforms else ""
+    
     # Enhanced queries focused on contact details and business information
-    map_query = f"{industry} companies contact email phone website {query_location}" if query_location else f"{industry} companies contact email phone website"
-    search_query1 = f"{industry} companies directory contact details {query_location}" if query_location else f"{industry} companies directory contact details"
-    search_query2 = f"top {industry} businesses email phone contact {query_location}" if query_location else f"top {industry} businesses email phone contact"
-    search_query3 = f"{industry} firms contact information {query_location}" if query_location else f"{industry} firms contact information"
+    base_map = f"{industry} companies contact email phone website"
+    if query_location: base_map += f" {query_location}"
+    
+    base_search1 = f"{industry} companies directory contact details"
+    if query_location: base_search1 += f" {query_location}"
+    if platform_query: base_search1 += f" ({platform_query})"
+    
+    base_search2 = f"top {industry} businesses email phone contact"
+    if query_location: base_search2 += f" {query_location}"
+    if platform_query: base_search2 += f" ({platform_query})"
+    
+    base_search3 = f"{industry} firms contact information"
+    if query_location: base_search3 += f" {query_location}"
+    if platform_query: base_search3 += f" ({platform_query})"
 
-    maps_task = serp_service.search_google_maps(map_query, location=query_location)
+    maps_task = serp_service.search_google_maps(base_map, location=query_location)
     search_tasks = [
-        serp_service.search_google(search_query1, num=max_results // 3),
-        serp_service.search_google(search_query2, num=max_results // 3),
-        serp_service.search_google(search_query3, num=max_results // 3),
+        serp_service.search_google(base_search1, num=max_results // 3),
+        serp_service.search_google(base_search2, num=max_results // 3),
+        serp_service.search_google(base_search3, num=max_results // 3),
     ]
 
     map_results, *search_results_list = await asyncio.gather(maps_task, *search_tasks)
@@ -234,13 +278,26 @@ async def _scrape_category_one(industry: str, country: Optional[str], city: Opti
     return [lead for lead in leads if lead and lead.source_url]
 
 
-async def _scrape_category_two(industry: str, country: Optional[str], city: Optional[str], keywords: Optional[List[str]], max_results: int) -> List[Lead]:
+async def _scrape_category_two(industry: str, country: Optional[str], city: Optional[str], keywords: Optional[List[str]], platforms: Optional[List[str]], max_results: int) -> List[Lead]:
     query_location = _parse_source_terms(country, city)
+    platform_query = " OR ".join([f"site:{p}.com" for p in platforms]) if platforms else ""
+    
     # Enhanced queries focused on tech companies with contact details
-    search_query_a = f"{industry} startup {query_location} contact email phone website hiring developers" if query_location else f"{industry} startup contact email phone website hiring developers"
-    search_query_b = f"{industry} company {query_location} software development outsourcing contact details" if query_location else f"{industry} company software development outsourcing contact details"
-    search_query_c = f"{industry} tech firms {query_location} email phone contact information" if query_location else f"{industry} tech firms email phone contact information"
-    jobs_query = f"{industry} software developer jobs contact email {query_location}" if query_location else f"{industry} software developer jobs contact email"
+    search_query_a = f"{industry} startup contact email phone website"
+    if query_location: search_query_a += f" {query_location}"
+    if platform_query: search_query_a += f" ({platform_query})"
+
+    search_query_b = f"{industry} company software development outsourcing contact details"
+    if query_location: search_query_b += f" {query_location}"
+    if platform_query: search_query_b += f" ({platform_query})"
+
+    search_query_c = f"{industry} tech firms email phone contact information"
+    if query_location: search_query_c += f" {query_location}"
+    if platform_query: search_query_c += f" ({platform_query})"
+
+    jobs_query = f"{industry} software developer jobs contact email"
+    if query_location: jobs_query += f" {query_location}"
+    if platform_query: jobs_query += f" ({platform_query})"
 
     result_a, result_b, result_c, jobs_results = await asyncio.gather(
         serp_service.search_google(search_query_a, num=max_results // 3),
@@ -268,10 +325,14 @@ async def _scrape_category_two(industry: str, country: Optional[str], city: Opti
     return [lead for lead in leads if lead and lead.source_url]
 
 
-async def _scrape_category_three(industry: str, country: Optional[str], city: Optional[str], keywords: Optional[List[str]], max_results: int) -> List[Lead]:
+async def _scrape_category_three(industry: str, country: Optional[str], city: Optional[str], keywords: Optional[List[str]], platforms: Optional[List[str]], max_results: int) -> List[Lead]:
     query_location = _parse_source_terms(country, city)
     # More targeted freelance project searches
-    search_query_a = f"site:upwork.com OR site:freelancer.com OR site:linkedin.com \"{industry} project\" OR \"looking for developer\" contact {query_location}".strip()
+    if platforms:
+        platform_query = " OR ".join([f"site:{p}.com" for p in platforms])
+        search_query_a = f"({platform_query}) \"{industry} project\" OR \"looking for developer\" contact {query_location}".strip()
+    else:
+        search_query_a = f"site:upwork.com OR site:freelancer.com OR site:linkedin.com \"{industry} project\" OR \"looking for developer\" contact {query_location}".strip()
     search_query_b = f"{industry} freelance project needed contact email {query_location}" if query_location else f"{industry} freelance project needed contact email"
     jobs_query = f"{industry} freelance developer project contact {query_location}" if query_location else f"{industry} freelance developer project contact"
     result_a, result_b, jobs_results = await asyncio.gather(
@@ -298,11 +359,18 @@ async def _scrape_category_three(industry: str, country: Optional[str], city: Op
     return [lead for lead in leads if lead and lead.source_url]
 
 
-async def _scrape_category_four(industry: str, country: Optional[str], city: Optional[str], keywords: Optional[List[str]], max_results: int) -> List[Lead]:
+async def _scrape_category_four(industry: str, country: Optional[str], city: Optional[str], keywords: Optional[List[str]], platforms: Optional[List[str]], max_results: int) -> List[Lead]:
     query_location = _parse_source_terms(country, city)
+    platform_query = " OR ".join([f"site:{p}.com" for p in platforms]) if platforms else ""
+    
     # More specific agency searches with contact info
-    search_query_a = f"AI development agency contact email phone {query_location}" if query_location else "AI development agency contact email phone"
-    search_query_b = f"software development agency portfolio contact {query_location}" if query_location else "software development agency portfolio contact"
+    search_query_a = f"AI development agency contact email phone"
+    if query_location: search_query_a += f" {query_location}"
+    if platform_query: search_query_a += f" ({platform_query})"
+
+    search_query_b = f"software development agency portfolio contact"
+    if query_location: search_query_b += f" {query_location}"
+    if platform_query: search_query_b += f" ({platform_query})"
     result_a, result_b = await asyncio.gather(
         serp_service.search_google(search_query_a, num=max_results),
         serp_service.search_google(search_query_b, num=max_results),
@@ -325,7 +393,8 @@ async def scrape_all(
     country: Optional[str],
     city: Optional[str],
     keywords: Optional[List[str]],
-    max_results: int,
+    platforms: Optional[List[str]] = None,
+    max_results: int = 20,
     enable_ai: bool = True,
 ) -> List[Lead]:
     category_map = {
@@ -340,19 +409,44 @@ async def scrape_all(
         if not handler:
             continue
         for industry in industries:
-            tasks.append(asyncio.create_task(handler(industry, country, city, keywords, max_results)))
+            tasks.append(asyncio.create_task(handler(industry, country, city, keywords, platforms or [], max_results)))
+
+    logger.info(
+        "[SCRAPE] Starting %d scraping task(s) | categories=%s | industries=%s | country=%s | city=%s",
+        len(tasks), categories, industries, country, city,
+    )
+
     results = await asyncio.gather(*tasks, return_exceptions=True)
     leads: List[Lead] = []
+    failed = 0
     for result in results:
         if isinstance(result, Exception):
-            logger.warning("Scraping task failed: %s", result)
+            logger.warning("[SCRAPE] Scraping task failed: %s", result)
+            failed += 1
             continue
         leads.extend(result)
+
+    logger.info(
+        "[SCRAPE] Raw leads collected: %d | failed tasks: %d",
+        len(leads), failed,
+    )
+
     if enable_ai:
         try:
             gemini_service = importlib.import_module("app.services.gemini_service")
             if hasattr(gemini_service, "enrich_leads"):
+                logger.info("[AI] Starting AI enrichment for %d leads ...", len(leads))
                 leads = await gemini_service.enrich_leads(leads)
+                logger.info("[AI] AI enrichment complete. %d leads returned.", len(leads))
         except Exception as exc:
-            logger.warning("AI enrichment disabled: %s", exc)
+            logger.warning("[AI] AI enrichment disabled: %s", exc)
+    else:
+        logger.info("[SCRAPE] AI enrichment skipped (enable_ai=False)")
+
+    if not leads:
+        logger.warning(
+            "[SCRAPE] ⚠️  No leads were collected! "
+            "Check for CREDITS EXHAUSTED or MISSING KEY messages above."
+        )
+
     return leads

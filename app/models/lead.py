@@ -28,5 +28,6 @@ class Lead(BaseModel):
     lead_quality: Optional[str] = None
     platform: Optional[str] = None
     post_url: Optional[str] = None
+    followers: Optional[str] = None
     scraped_at: datetime
     keywords_matched: List[str]

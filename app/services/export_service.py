@@ -37,8 +37,11 @@ def generate_csv(leads: List[Lead], export_dir: str, filename: str) -> str:
         "ai_score",
         "ai_summary",
         "outreach_angle",
+        "contact_priority",
+        "lead_quality",
         "platform",
         "post_url",
+        "followers",
         "scraped_at",
         "keywords_matched",
     ]
@@ -67,19 +70,20 @@ def generate_pdf(leads: List[Lead], export_dir: str, filename: str) -> str:
         "default": ParagraphStyle(name="default", fontName="Helvetica", fontSize=9, leading=11, textColor=colors.white),
         "title": ParagraphStyle(name="title", fontName="Helvetica-Bold", fontSize=14, leading=16, textColor=colors.white),
     }
-    rows = [["Name", "Category", "Industry", "Location", "Score", "Website"]]
+    headers = ["Name", "Email", "Phone", "Website", "Score", "Quality", "Priority", "Followers"]
+    data = [headers]
     for lead in leads:
-        rows.append(
-            [
-                lead.name,
-                str(lead.category),
-                lead.industry,
-                lead.location,
-                str(lead.ai_score or ""),
-                lead.website or "",
-            ]
-        )
-    table = Table(rows, repeatRows=1, hAlign="LEFT", colWidths=[2.2 * inch, 0.7 * inch, 1.6 * inch, 1.4 * inch, 0.7 * inch, 1.4 * inch])
+        data.append([
+            lead.name[:30],
+            lead.email or "—",
+            lead.phone or "—",
+            lead.website or "—",
+            str(lead.ai_score or "—"),
+            lead.lead_quality or "—",
+            lead.contact_priority or "—",
+            lead.followers or "—",
+        ])
+    table = Table(data, repeatRows=1, hAlign="LEFT", colWidths=[1.8 * inch, 0.8 * inch, 1.4 * inch, 1.4 * inch, 0.6 * inch, 0.8 * inch, 0.8 * inch, 0.8 * inch])
     table.setStyle(
         TableStyle(
             [
@@ -89,7 +93,10 @@ def generate_pdf(leads: List[Lead], export_dir: str, filename: str) -> str:
                 ("TEXTCOLOR", (0, 1), (-1, -1), colors.white),
                 ("GRID", (0, 0), (-1, -1), 0.2, colors.HexColor("#333333")),
                 ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
-                ("FONTSIZE", (0, 0), (-1, -1), 8),
+                ("FONTSIZE", (0, 0), (-1, -1), 7),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 4),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 4),
             ]
         )
     )

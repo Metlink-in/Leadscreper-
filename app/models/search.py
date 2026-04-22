@@ -14,5 +14,6 @@ class SearchRequest(BaseModel):
     country: Optional[str] = None
     city: Optional[str] = None
     keywords: Optional[List[str]] = None
+    platforms: Optional[List[str]] = []
     max_results: Optional[int] = 50
     enable_ai: Optional[bool] = True

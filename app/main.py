@@ -104,18 +104,7 @@ async def signup(
 @app.get("/logout")
 async def logout():
     response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
-    print(f"[AUTH] Logout initiated. Clearing cookie 'access_token' for path '/'")
     response.delete_cookie(key="access_token", path="/")
-    response.set_cookie(
-        key="access_token", 
-        value="", 
-        max_age=0, 
-        expires=0, 
-        path="/", 
-        httponly=True,
-        samesite="lax",
-        secure=False
-    )
     return response
 
 @app.get("/", response_class=HTMLResponse)

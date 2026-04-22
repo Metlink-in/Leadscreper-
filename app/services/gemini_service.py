@@ -1,35 +1,44 @@
 from __future__ import annotations
 
 import asyncio
-import importlib
 import json
 import logging
+import re
 from typing import Any, Dict, List, Optional
 
+import httpx
 from app.config import settings
 from app.models.lead import Lead
 
 logger = logging.getLogger(__name__)
-_generativeai: Optional[Any] = None
-_generativeai_loaded = False
-_generativeai_error: Optional[BaseException] = None
 
+def _extract_json(text: str) -> str:
+    """Robustly extract JSON from text, even if wrapped in markdown code blocks."""
+    # Try to find JSON block
+    match = re.search(r'```json\s*(.*?)\s*```', text, re.DOTALL)
+    if match:
+        return match.group(1).strip()
+    
+    # Try generic code block
+    match = re.search(r'```\s*(.*?)\s*```', text, re.DOTALL)
+    if match:
+        return match.group(1).strip()
+        
+    # Just return text, maybe it's raw JSON
+    return text.strip()
 
-def _extract_contact_info(text: str) -> tuple[Optional[str], Optional[str]]:
-    """Extract email and phone from text using comprehensive regex patterns."""
-    import re
-
-    # Enhanced email pattern - more comprehensive
+def _extract_contact_info_regex(text: str) -> tuple[Optional[str], Optional[str]]:
+    """Extract email and phone from text using regex patterns."""
+    # Email pattern
     email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
     email_match = re.search(email_pattern, text, re.IGNORECASE)
     email = email_match.group(0) if email_match else None
 
-    # Enhanced phone pattern - international formats
+    # Phone pattern
     phone_patterns = [
-        r'\+\d{1,3}[-.\s]?\(?\d{1,4}\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{0,4}',  # +1 (123) 456-7890
-        r'\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}',  # (123) 456-7890 or 123-456-7890
-        r'\d{10,15}',  # 10-15 digit numbers
-        r'\+\d{10,15}',  # + followed by 10-15 digits
+        r'\+\d{1,3}[-.\s]?\(?\d{1,4}\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{0,4}',
+        r'\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}',
+        r'\b\d{10,15}\b',
     ]
 
     phone = None
@@ -37,43 +46,12 @@ def _extract_contact_info(text: str) -> tuple[Optional[str], Optional[str]]:
         phone_match = re.search(pattern, text)
         if phone_match:
             phone = phone_match.group(0)
-            # Clean up the phone number
             phone = re.sub(r'[^\d+\-\(\)\s]', '', phone).strip()
             break
 
     return email, phone
 
-
-def _load_generativeai() -> Optional[Any]:
-    global _generativeai, _generativeai_loaded, _generativeai_error
-    if _generativeai_loaded:
-        return _generativeai
-    _generativeai_loaded = True
-    try:
-        _generativeai = importlib.import_module("google.generativeai")
-        if settings.gemini_api_key:
-            _generativeai.configure(api_key=settings.gemini_api_key)
-        return _generativeai
-    except BaseException as exc:
-        _generativeai_error = exc
-        logger.warning("Gemini SDK unavailable: %s", exc)
-        return None
-
-
-def _extract_text(response: Any) -> str:
-    if isinstance(response, dict):
-        content = response.get("content") or response.get("text") or response.get("output")
-        if isinstance(content, list):
-            return "".join(str(item.get("text", item)) for item in content)
-        return str(content or "")
-    if hasattr(response, "text"):
-        return str(response.text)
-    if hasattr(response, "content"):
-        return str(response.content)
-    return str(response)
-
-
-def _build_prompt(lead: Lead) -> str:
+def _build_enrichment_prompt(lead: Lead) -> str:
     lead_json = json.dumps(lead.model_dump(), default=str)
     return (
         "You are a business development assistant for an AI/software development agency. "
@@ -90,86 +68,15 @@ def _build_prompt(lead: Lead) -> str:
         "Only return valid JSON, no markdown or extra text."
     )
 
-
-async def _call_gemini(prompt: str) -> Dict[str, Any]:
-    generativeai = _load_generativeai()
-    if not generativeai:
-        raise RuntimeError("Gemini SDK is unavailable")
-    model = generativeai.GenerativeModel('gemini-1.5-flash')
-    response = model.generate_content(prompt)
-    return response
-
-
-async def enrich_lead(lead: Lead) -> Lead:
-    if not settings.enable_ai_enrichment or not settings.gemini_api_key:
-        return lead
-
-    # First, enrich with analysis
-    prompt = _build_prompt(lead)
-    try:
-        raw_response = await _call_gemini(prompt)
-        text = _extract_text(raw_response)
-        data = json.loads(text)
-        lead.ai_score = int(data.get("score", 0))
-        lead.ai_summary = data.get("summary")
-        lead.outreach_angle = data.get("outreach_angle")
-        lead.contact_priority = data.get("contact_priority")
-        lead.lead_quality = data.get("lead_quality")
-
-        # Extract additional contacts if found
-        extracted_contacts = data.get("extracted_contacts", "")
-        if extracted_contacts and isinstance(extracted_contacts, str):
-            # Try to extract email and phone from the extracted contacts
-            extracted_email, extracted_phone = _extract_contact_info(extracted_contacts)
-            if extracted_email and not lead.email:
-                lead.email = extracted_email
-            if extracted_phone and not lead.phone:
-                lead.phone = extracted_phone
-
-    except Exception as exc:
-        logger.warning("Gemini enrichment skipped for lead=%s: %s", lead.id, exc)
-
-    # Then try to extract contact information if missing
-    if not lead.email or not lead.phone:
-        try:
-            extracted_email, extracted_phone, social_links, contact_page = await extract_contacts_with_ai(lead)
-            if extracted_email and not lead.email:
-                lead.email = extracted_email
-            if extracted_phone and not lead.phone:
-                lead.phone = extracted_phone
-            # Could add social_links and contact_page to lead model if needed
-        except Exception as exc:
-            logger.warning("Contact extraction failed for lead=%s: %s", lead.id, exc)
-
-    return lead
-
-
-async def enrich_leads(leads: List[Lead]) -> List[Lead]:
-    semaphore = asyncio.Semaphore(3)  # Reduced concurrency for more thorough processing
-
-    async def _enrich(lead: Lead) -> Lead:
-        async with semaphore:
-            return await enrich_lead(lead)
-
-    return await asyncio.gather(*[_enrich(lead) for lead in leads])
-
-
 def _build_contact_extraction_prompt(lead: Lead) -> str:
     return (
-        "Extract ALL contact information from this business lead. Be thorough and look for any emails, phone numbers, "
-        "social media links, or contact pages mentioned anywhere in the provided information.\n\n"
+        "Extract ALL contact information from this business lead. Be thorough.\n\n"
         f"Business Name: {lead.name}\n"
         f"Description: {lead.description}\n"
         f"Website: {lead.website or 'Not provided'}\n"
         f"Source URL: {lead.source_url}\n"
         f"Location: {lead.location}\n"
         f"Industry: {lead.industry}\n\n"
-        "Search carefully for:\n"
-        "- Email addresses (look for @ symbols, contact forms, mailto: links)\n"
-        "- Phone numbers (various formats: +1-123-456-7890, (123) 456-7890, etc.)\n"
-        "- Social media profiles (LinkedIn, Twitter, Facebook, Instagram, etc.)\n"
-        "- Contact pages or forms\n"
-        "- Any other contact methods mentioned\n\n"
         "Return JSON with:\n"
         "- email: primary email address found, or null\n"
         "- phone: primary phone number found, or null\n"
@@ -179,6 +86,112 @@ def _build_contact_extraction_prompt(lead: Lead) -> str:
         "Only return valid JSON, no markdown or extra text."
     )
 
+async def _call_gemini_http(prompt: str) -> Optional[str]:
+    """Call Gemini API via direct HTTP request to avoid SDK/grpcio compatibility issues."""
+    if not settings.gemini_api_key:
+        logger.warning("[AI] Gemini API key missing")
+        return None
+
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={settings.gemini_api_key}"
+    
+    payload = {
+        "contents": [{
+            "parts": [{"text": prompt}]
+        }],
+        "generationConfig": {
+            "temperature": 0.2,
+            "topP": 0.8,
+            "topK": 40,
+            "maxOutputTokens": 1024,
+        }
+    }
+
+    max_retries = 3
+    retry_delay = 2
+
+    for attempt in range(max_retries):
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.post(url, json=payload)
+                
+                if response.status_code == 429:
+                    logger.warning("[AI] Rate limit hit (429), retrying in %ds... (attempt %d/%d)", retry_delay, attempt + 1, max_retries)
+                    await asyncio.sleep(retry_delay)
+                    retry_delay *= 2
+                    continue
+                    
+                response.raise_for_status()
+                data = response.json()
+                
+                # Extract text from response structure
+                candidates = data.get("candidates", [])
+                if candidates and candidates[0].get("content", {}).get("parts"):
+                    return candidates[0]["content"]["parts"][0].get("text")
+                
+                logger.warning("[AI] Unexpected Gemini response structure: %s", data)
+                return None
+        except Exception as e:
+            if attempt == max_retries - 1:
+                logger.error("[AI] Gemini API HTTP request failed after %d attempts: %s", max_retries, e)
+            await asyncio.sleep(retry_delay)
+            retry_delay *= 2
+            
+    return None
+
+async def enrich_lead(lead: Lead) -> Lead:
+    if not settings.enable_ai_enrichment or not settings.gemini_api_key:
+        return lead
+
+    # 1. Main Enrichment Analysis
+    prompt = _build_enrichment_prompt(lead)
+    text = await _call_gemini_http(prompt)
+    
+    if text:
+        try:
+            json_text = _extract_json(text)
+            data = json.loads(json_text)
+            
+            lead.ai_score = int(data.get("score", 0))
+            lead.ai_summary = data.get("summary")
+            lead.outreach_angle = data.get("outreach_angle")
+            lead.contact_priority = data.get("contact_priority")
+            lead.lead_quality = data.get("lead_quality")
+
+            # Extract additional contacts if found
+            extracted_contacts = data.get("extracted_contacts", "")
+            if extracted_contacts and isinstance(extracted_contacts, str):
+                extracted_email, extracted_phone = _extract_contact_info_regex(extracted_contacts)
+                if extracted_email and not lead.email:
+                    lead.email = extracted_email
+                if extracted_phone and not lead.phone:
+                    lead.phone = extracted_phone
+        except Exception as exc:
+            logger.warning("[AI] Enrichment parsing failed for lead=%s: %s", lead.id, exc)
+
+    # 2. Deep Contact Extraction if info is still missing
+    if not lead.email or not lead.phone:
+        try:
+            email, phone, social, contact_page = await extract_contacts_with_ai(lead)
+            if email and not lead.email: lead.email = email
+            if phone and not lead.phone: lead.phone = phone
+        except Exception as exc:
+            logger.warning("[AI] Deep contact extraction failed for lead=%s: %s", lead.id, exc)
+
+    return lead
+
+async def enrich_leads(leads: List[Lead]) -> List[Lead]:
+    if not leads:
+        return leads
+        
+    semaphore = asyncio.Semaphore(2)  # Low concurrency for free-tier keys
+
+    async def _enrich(lead: Lead) -> Lead:
+        async with semaphore:
+            return await enrich_lead(lead)
+
+    logger.info("[AI] Enriching %d leads via HTTP API...", len(leads))
+    results = await asyncio.gather(*[_enrich(lead) for lead in leads])
+    return list(results)
 
 async def extract_contacts_with_ai(lead: Lead) -> tuple[Optional[str], Optional[str], List[str], Optional[str]]:
     """Use AI to extract contact information from lead data."""
@@ -186,16 +199,19 @@ async def extract_contacts_with_ai(lead: Lead) -> tuple[Optional[str], Optional[
         return None, None, [], None
 
     prompt = _build_contact_extraction_prompt(lead)
-    try:
-        raw_response = await _call_gemini(prompt)
-        text = _extract_text(raw_response)
-        data = json.loads(text)
-        return (
-            data.get("email"),
-            data.get("phone"),
-            data.get("social_links", []),
-            data.get("contact_page")
-        )
-    except Exception as exc:
-        logger.warning("Contact extraction failed for lead=%s: %s", lead.id, exc)
-        return None, None, [], None
+    text = await _call_gemini_http(prompt)
+    
+    if text:
+        try:
+            json_text = _extract_json(text)
+            data = json.loads(json_text)
+            return (
+                data.get("email"),
+                data.get("phone"),
+                data.get("social_links", []),
+                data.get("contact_page")
+            )
+        except Exception as exc:
+            logger.warning("[AI] Contact extraction parsing failed for lead=%s: %s", lead.id, exc)
+            
+    return None, None, [], None

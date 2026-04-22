@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin - Credentials</title>
+  <title>Settings - Lead Intel</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
@@ -151,9 +151,15 @@
       <h1>Lead Intel</h1>
     </div>
     <div class="header-meta">
-      <span>Admin Panel</span>
+      <span>Account Settings</span>
     </div>
   </header>
+  
+  {% if message %}
+  <div style="max-width: 600px; margin: 20px auto 0; padding: 12px 20px; background: #00ff8822; border: 1px solid #00ff88; border-radius: 12px; color: #00ff88; text-align: center;">
+    {{ message }}
+  </div>
+  {% endif %}
 
     <div class="layout">
     <a href="/" class="back-link">&larr; Back to Dashboard</a>
@@ -178,19 +184,15 @@
         <input type="hidden" name="search_api_provider" value="searchapi">
         <div class="field">
           <label for="search_api_key">SearchApi.io API Key</label>
-          <input type="password" id="search_api_key" name="search_api_key" value="{{ '********' if settings.search_api_key else '' }}" placeholder="Enter your SearchApi.io key">
+          <input type="password" id="search_api_key" name="search_api_key" value="{{ '********' if user.search_api_key else '' }}" placeholder="Enter your SearchApi.io key">
         </div>
         <div class="field">
           <label for="gemini_api_key">Gemini API Key</label>
-          <input type="password" id="gemini_api_key" name="gemini_api_key" value="{{ '********' if settings.gemini_api_key else '' }}">
+          <input type="password" id="gemini_api_key" name="gemini_api_key" value="{{ '********' if user.gemini_api_key else '' }}" placeholder="Enter your Gemini key">
         </div>
         <div class="field">
           <label for="openai_api_key">OpenAI API Key (optional)</label>
-          <input type="password" id="openai_api_key" name="openai_api_key" value="{{ '********' if settings.openai_api_key else '' }}">
-        </div>
-        <div class="field">
-          <label for="app_secret">App Secret</label>
-          <input type="password" id="app_secret" name="app_secret" value="{{ '********' if settings.app_secret else '' }}">
+          <input type="password" id="openai_api_key" name="openai_api_key" value="{{ '********' if user.openai_api_key else '' }}">
         </div>
         <button type="submit" class="button">Save Credentials</button>
       </form>

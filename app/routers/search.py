@@ -3,8 +3,9 @@ from __future__ import annotations
 import logging
 from datetime import datetime
 from uuid import uuid4
+from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Depends
 
 from app.config import settings
 from app.models.search import SearchRequest
@@ -12,16 +13,24 @@ from app.services.scraper_service import scrape_all
 from app.services.db_service import db_service
 from app.services.exceptions import APIError
 
+from app.services.dependencies import require_user
+
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
-
 @router.post("/api/search")
-async def search(request: SearchRequest, http_request: Request) -> dict:
+async def search(request: SearchRequest, http_request: Request, user = Depends(require_user)) -> dict:
     logger.info(
-        "[REQUEST] POST /api/search | industries=%s | categories=%s | country=%s | city=%s | enable_ai=%s",
-        request.industries, request.categories, request.country, request.city, request.enable_ai,
+        "[REQUEST] POST /api/search | user=%s | industries=%s | categories=%s",
+        user["email"], request.industries, request.categories,
     )
+    
+    api_keys = {
+        "search_api_key": user.get("search_api_key") or settings.search_api_key,
+        "gemini_api_key": user.get("gemini_api_key") or settings.gemini_api_key,
+        "openai_api_key": user.get("openai_api_key") or settings.openai_api_key,
+    }
+
     try:
         max_results = min(request.max_results or settings.max_results_per_source, settings.max_results_per_source)
         leads = await scrape_all(
@@ -33,6 +42,8 @@ async def search(request: SearchRequest, http_request: Request) -> dict:
             platforms=request.platforms,
             max_results=max_results,
             enable_ai=request.enable_ai,
+            user_id=str(user["_id"]),
+            api_keys=api_keys
         )
     except APIError as e:
         logger.error(f"Search API failure: {e.message}")
@@ -41,14 +52,9 @@ async def search(request: SearchRequest, http_request: Request) -> dict:
         logger.error("[REQUEST] /api/search failed with error: %s", exc, exc_info=True)
         raise HTTPException(status_code=500, detail=str(exc))
 
-    # Sort leads by AI score (highest first) and filter out low-quality leads
     scored_leads = [lead for lead in leads if lead.ai_score is not None]
     unscored_leads = [lead for lead in leads if lead.ai_score is None]
-
-    # Sort scored leads by score descending
     scored_leads.sort(key=lambda x: x.ai_score or 0, reverse=True)
-
-    # Combine scored and unscored leads
     sorted_leads = scored_leads + unscored_leads
 
     search_id = uuid4().hex
@@ -67,11 +73,6 @@ async def search(request: SearchRequest, http_request: Request) -> dict:
         },
     }
 
-    # Save to memory
-    http_request.app.state.search_store[search_id] = search_data
-    
-    # Save to MongoDB
-    # Convert leads to dictionaries for MongoDB
     db_search_data = {
         "created_at": search_data["created_at"],
         "meta": search_data["meta"],
@@ -82,13 +83,11 @@ async def search(request: SearchRequest, http_request: Request) -> dict:
             "total_leads": len(sorted_leads)
         }
     }
-    await db_service.save_search(search_id, db_search_data)
+    await db_service.save_search(search_id, db_search_data, user_id=str(user["_id"]))
 
-    # Prepare enhanced response with better presentation
     leads_data = []
     for lead in sorted_leads[:max_results]:
         lead_dict = lead.model_dump()
-        # Add presentation enhancements
         lead_dict["contact_info_available"] = bool(lead.email or lead.phone)
         lead_dict["has_website"] = bool(lead.website)
         lead_dict["priority_score"] = lead.ai_score or 0
@@ -108,34 +107,27 @@ async def search(request: SearchRequest, http_request: Request) -> dict:
     }
 
 @router.get("/api/history")
-async def get_history(limit: int = 50) -> dict:
+async def get_history(limit: int = 50, user = Depends(require_user)) -> dict:
     try:
-        history = await db_service.get_search_history(limit)
+        history = await db_service.get_search_history(user_id=str(user["_id"]), limit=limit)
         return {"history": history}
     except Exception as exc:
         logger.error("[REQUEST] /api/history failed: %s", exc)
         raise HTTPException(status_code=500, detail="Failed to fetch history")
 
 @router.get("/api/history/{search_id}")
-async def get_history_detail(search_id: str, http_request: Request) -> dict:
+async def get_history_detail(search_id: str, user = Depends(require_user)) -> dict:
     try:
-        # First check memory
-        if search_id in http_request.app.state.search_store:
-            data = http_request.app.state.search_store[search_id]
-            leads_data = [lead.model_dump() for lead in data["leads"]]
-        else:
-            # Check DB
-            data = await db_service.get_search(search_id)
-            if not data:
-                raise HTTPException(status_code=404, detail="Search not found")
-            leads_data = data["leads"]
+        data = await db_service.get_search(search_id, user_id=str(user["_id"]))
+        if not data:
+            raise HTTPException(status_code=404, detail="Search not found")
             
         return {
             "search_id": search_id,
             "created_at": data["created_at"],
             "meta": data["meta"],
-            "total": len(leads_data),
-            "leads": leads_data
+            "total": len(data["leads"]),
+            "leads": data["leads"]
         }
     except HTTPException:
         raise
@@ -144,12 +136,9 @@ async def get_history_detail(search_id: str, http_request: Request) -> dict:
         raise HTTPException(status_code=500, detail="Failed to fetch history detail")
 
 @router.delete("/api/history/{search_id}")
-async def delete_search_history(search_id: str, http_request: Request):
+async def delete_search_history(search_id: str, user = Depends(require_user)):
     try:
-        # Remove from memory
-        http_request.app.state.search_store.pop(search_id, None)
-        # Remove from DB
-        success = await db_service.delete_search(search_id)
+        success = await db_service.delete_search(search_id, user_id=str(user["_id"]))
         if not success:
             raise HTTPException(status_code=404, detail="Search not found")
         return {"status": "success", "message": "Search deleted"}
@@ -160,12 +149,9 @@ async def delete_search_history(search_id: str, http_request: Request):
         raise HTTPException(status_code=500, detail="Failed to delete search")
 
 @router.delete("/api/history")
-async def clear_all_history(http_request: Request):
+async def clear_all_history(user = Depends(require_user)):
     try:
-        # Clear memory
-        http_request.app.state.search_store = {}
-        # Clear DB
-        count = await db_service.clear_all_searches()
+        count = await db_service.clear_all_searches(user_id=str(user["_id"]))
         return {"status": "success", "message": f"Cleared {count} searches"}
     except Exception as exc:
         logger.error("[REQUEST] DELETE /api/history failed: %s", exc)

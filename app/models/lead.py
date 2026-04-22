@@ -11,6 +11,7 @@ class Lead(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     id: str
+    user_id: Optional[str] = None
     name: str
     category: int
     industry: str

@@ -11,17 +11,13 @@ from app.services.exceptions import APIError
 logger = logging.getLogger(__name__)
 
 
-def _get_api_key():
-    return settings.search_api_key
-
-
-async def _execute_search(params: Dict[str, Any]) -> Dict[str, Any]:
+async def _execute_search(params: Dict[str, Any], api_key: Optional[str] = None) -> Dict[str, Any]:
     """Execute a search against SearchApi.io."""
-    api_key = _get_api_key()
-    if not api_key:
-        raise APIError("SearchApi.io key is missing. Please add it in the Admin panel.", 401)
+    effective_key = api_key or settings.search_api_key
+    if not effective_key:
+        raise APIError("SearchApi.io key is missing. Please add it in your Settings.", 401)
 
-    params["api_key"] = api_key
+    params["api_key"] = effective_key
     base_url = "https://www.searchapi.io/api/v1/search"
 
     async with httpx.AsyncClient(timeout=30.0) as client:
@@ -32,11 +28,9 @@ async def _execute_search(params: Dict[str, Any]) -> Dict[str, Any]:
                 return response.json()
             
             if response.status_code == 402:
-                # 402 is commonly used for credits exhausted
                 raise APIError("Credits exhausted on SearchApi.io. Please upgrade your plan.", 402)
             
             if response.status_code == 429:
-                # Check for specific quota error in response text
                 error_data = response.json()
                 error_msg = error_data.get("error", "Rate limit exceeded on SearchApi.io")
                 raise APIError(error_msg, 429)
@@ -51,7 +45,7 @@ async def _execute_search(params: Dict[str, Any]) -> Dict[str, Any]:
             raise APIError(f"Connection failed: {str(exc)}", 500)
 
 
-async def search_google(query: str, num: int = 10, page: int = 1) -> List[Dict[str, Any]]:
+async def search_google(query: str, num: int = 10, page: int = 1, api_key: Optional[str] = None) -> List[Dict[str, Any]]:
     """Perform a standard Google search via SearchApi.io."""
     logger.info("[SEARCH] Google search | query=%r | page=%d", query, page)
     try:
@@ -61,7 +55,7 @@ async def search_google(query: str, num: int = 10, page: int = 1) -> List[Dict[s
             "num": num,
             "page": page,
         }
-        result = await _execute_search(params)
+        result = await _execute_search(params, api_key=api_key)
         items = result.get("organic_results", []) or []
         logger.info("[SEARCH] Google returned %d results", len(items))
         return items
@@ -72,7 +66,7 @@ async def search_google(query: str, num: int = 10, page: int = 1) -> List[Dict[s
         return []
 
 
-async def search_google_maps(query: str, location: Optional[str] = None) -> List[Dict[str, Any]]:
+async def search_google_maps(query: str, location: Optional[str] = None, api_key: Optional[str] = None) -> List[Dict[str, Any]]:
     """Perform a Google Maps search via SearchApi.io."""
     logger.info("[MAPS] Google Maps search | query=%r", query)
     try:
@@ -84,8 +78,7 @@ async def search_google_maps(query: str, location: Optional[str] = None) -> List
         if location:
             params["location"] = location
             
-        result = await _execute_search(params)
-        # SearchApi.io Maps engine returns results in 'local_results' or 'results'
+        result = await _execute_search(params, api_key=api_key)
         items = result.get("local_results", []) or result.get("results", []) or []
         logger.info("[MAPS] Google Maps returned %d results", len(items))
         return items
@@ -96,7 +89,7 @@ async def search_google_maps(query: str, location: Optional[str] = None) -> List
         return []
 
 
-async def search_google_jobs(query: str, location: Optional[str] = None) -> List[Dict[str, Any]]:
+async def search_google_jobs(query: str, location: Optional[str] = None, api_key: Optional[str] = None) -> List[Dict[str, Any]]:
     """Perform a Google Jobs search via SearchApi.io."""
     logger.info("[JOBS] Google Jobs search | query=%r", query)
     try:
@@ -108,8 +101,7 @@ async def search_google_jobs(query: str, location: Optional[str] = None) -> List
         if location:
             params["location"] = location
             
-        result = await _execute_search(params)
-        # SearchApi.io Jobs results are in 'jobs' or 'results'
+        result = await _execute_search(params, api_key=api_key)
         items = result.get("jobs", []) or result.get("jobs_results", []) or result.get("results", []) or []
         logger.info("[JOBS] Google Jobs returned %d results", len(items))
         return items
@@ -120,9 +112,9 @@ async def search_google_jobs(query: str, location: Optional[str] = None) -> List
         return []
 
 
-async def get_account_info() -> Dict[str, Any]:
+async def get_account_info(override_key: Optional[str] = None) -> Dict[str, Any]:
     """Fetch account info including credits from SearchApi.io."""
-    api_key = _get_api_key()
+    api_key = override_key or settings.search_api_key
     if not api_key:
         return {"error": "API key missing"}
     
@@ -132,7 +124,6 @@ async def get_account_info() -> Dict[str, Any]:
             response = await client.get(url)
             if response.status_code == 200:
                 data = response.json()
-                # Transform to a flatter structure for the UI
                 return {
                     "remaining_searches": data.get("account", {}).get("remaining_credits"),
                     "plan_name": data.get("subscription", {}).get("plan_name", "Free"),

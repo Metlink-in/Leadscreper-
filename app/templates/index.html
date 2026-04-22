@@ -633,10 +633,17 @@
       <div class="logo">LI</div>
       <div>
         <h1>Lead Intel</h1>
-        <div class="header-meta">AI-powered lead generation dashboard | <a href="/history">History</a> | <a href="/admin">Admin</a></div>
+        <div class="header-meta">
+          <a href="/history">History</a> | 
+          <a href="/admin">Settings</a> | 
+          <a href="/logout" style="color: #ff4444; margin-left: 8px;">Logout</a>
+        </div>
       </div>
     </div>
-    <div class="health-badge" id="healthBadge">Health ●</div>
+    <div style="text-align: right;">
+      <div style="font-weight: 600; color: #00ff88; margin-bottom: 4px;">{{ user.name }}</div>
+      <div class="health-badge" id="healthBadge" style="margin-left: auto;">Health ●</div>
+    </div>
   </header>
   <main class="layout">
     <aside class="panel">

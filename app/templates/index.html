@@ -1184,17 +1184,66 @@
       document.querySelectorAll(".detail-row").forEach((detail) => detail.remove());
       const detailRow = document.createElement("tr");
       detailRow.className = "detail-row";
+      
+      // Formatting helpers
+      const getEmail = (e) => e ? `<a href="mailto:${e}">${e}</a>` : '—';
+      const getPhone = (p) => p ? `<a href="tel:${p}">${p}</a>` : '—';
+      const getLink = (l) => l ? `<a href="${formatUrl(l)}" target="_blank" rel="noreferrer">${l}</a>` : '—';
+      const formatValue = (v) => v ? v : '—';
+      
       detailRow.innerHTML = `
-          <td colspan="10">
-            <div class="detail-content">
-              ${lead.ai_summary ? `<div><strong>🤖 AI Summary</strong>: ${lead.ai_summary}</div>` : ''}
-              ${lead.outreach_angle ? `<div><strong>🎯 Outreach Angle</strong>: ${lead.outreach_angle}</div>` : ''}
-              ${lead.contact_priority ? `<div><strong>📞 Contact Priority</strong>: ${lead.contact_priority.toUpperCase()}</div>` : ''}
-              ${lead.lead_quality ? `<div><strong>⭐ Lead Quality</strong>: ${lead.lead_quality}</div>` : ''}
-              <div><strong>🏷️ Keywords matched</strong>: ${lead.keywords_matched.join(", ") || "None"}</div>
-              <div><strong>🔗 Source</strong>: <a href="${lead.source_url}" target="_blank" rel="noreferrer">${lead.source_url}</a></div>
-              ${lead.platform ? `<div><strong>💼 Platform</strong>: ${lead.platform}</div>` : ''}
-              ${lead.description ? `<div><strong>📝 Description</strong>: ${lead.description}</div>` : ''}
+          <td colspan="15">
+            <div class="detail-content" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; align-items: start;">
+              
+              <!-- Basic Info -->
+              <div style="background: rgba(255,255,255,0.02); padding: 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                <h4 style="margin: 0 0 12px 0; color: #00ff88; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em;">Basic Info</h4>
+                <div style="display: grid; gap: 8px; font-size: 0.9rem;">
+                  <div><strong>Name:</strong> ${formatValue(lead.name)}</div>
+                  <div><strong>Category:</strong> ${formatValue(lead.category)}</div>
+                  <div><strong>Industry:</strong> ${formatValue(lead.industry)}</div>
+                  <div><strong>Location:</strong> ${formatValue(lead.location)}</div>
+                  <div><strong>Description:</strong> ${formatValue(lead.description)}</div>
+                </div>
+              </div>
+
+              <!-- Contact & Social -->
+              <div style="background: rgba(255,255,255,0.02); padding: 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                <h4 style="margin: 0 0 12px 0; color: #00ff88; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em;">Contact & Social</h4>
+                <div style="display: grid; gap: 8px; font-size: 0.9rem;">
+                  <div><strong>Email:</strong> ${getEmail(lead.email)}</div>
+                  <div><strong>Phone:</strong> ${getPhone(lead.phone)}</div>
+                  <div><strong>Website:</strong> ${getLink(lead.website)}</div>
+                  <div><strong>Platform:</strong> ${formatValue(lead.platform)}</div>
+                  <div><strong>Followers:</strong> ${formatValue(lead.followers)}</div>
+                  <div><strong>Post/Profile URL:</strong> ${getLink(lead.post_url)}</div>
+                </div>
+              </div>
+
+              <!-- AI Analysis -->
+              <div style="background: rgba(255,255,255,0.02); padding: 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                <h4 style="margin: 0 0 12px 0; color: #00ff88; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em;">AI Analysis</h4>
+                <div style="display: grid; gap: 8px; font-size: 0.9rem;">
+                  <div><strong>AI Score:</strong> <span class="badge score" style="font-size: 0.8rem; padding: 2px 6px;">${formatValue(lead.ai_score)}</span></div>
+                  <div><strong>Lead Quality:</strong> ${formatValue(lead.lead_quality)}</div>
+                  <div><strong>Contact Priority:</strong> ${formatValue(lead.contact_priority)}</div>
+                  <div><strong>AI Summary:</strong> ${formatValue(lead.ai_summary)}</div>
+                  <div><strong>Outreach Angle:</strong> ${formatValue(lead.outreach_angle)}</div>
+                </div>
+              </div>
+
+              <!-- Meta Data -->
+              <div style="background: rgba(255,255,255,0.02); padding: 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                <h4 style="margin: 0 0 12px 0; color: #00ff88; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em;">Meta Data</h4>
+                <div style="display: grid; gap: 8px; font-size: 0.9rem;">
+                  <div><strong>Keywords matched:</strong> ${lead.keywords_matched && lead.keywords_matched.length > 0 ? lead.keywords_matched.join(", ") : "None"}</div>
+                  <div><strong>Source:</strong> ${formatValue(lead.source)}</div>
+                  <div><strong>Source URL:</strong> ${getLink(lead.source_url)}</div>
+                  <div><strong>Scraped At:</strong> ${formatDate(lead.scraped_at)}</div>
+                  <div><strong>ID:</strong> <span style="font-family: monospace; font-size: 0.85rem;">${formatValue(lead.id)}</span></div>
+                </div>
+              </div>
+
             </div>
           </td>
         `;

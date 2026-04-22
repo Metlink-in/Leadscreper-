@@ -6,68 +6,253 @@
   <title>Login - Lead Intel</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
-    :root { color-scheme: dark; font-family: "Inter", sans-serif; background: #0a0a0a; color: #ffffff; }
-    body { margin: 0; display: grid; place-items: center; min-height: 100vh; background: radial-gradient(circle at top right, #00ff8815, transparent), #0a0a0a; }
-    .auth-card { background: #111; border: 1px solid #222; border-radius: 24px; padding: 40px; width: 100%; max-width: 400px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
-    .logo { width: 48px; height: 48px; background: linear-gradient(135deg, #00ff88, #0a0a0a); border-radius: 12px; display: grid; place-items: center; color: #0a0a0a; font-family: "IBM Plex Mono", monospace; font-weight: 700; margin-bottom: 24px; font-size: 1.2rem; }
-    h1 { font-family: "IBM Plex Mono", monospace; margin: 0 0 8px; font-size: 1.5rem; }
-    p { color: #888; margin-bottom: 32px; font-size: 0.95rem; }
-    .field { margin-bottom: 20px; }
-    label { display: block; margin-bottom: 8px; color: #bbb; font-size: 0.85rem; }
-    input { width: 100%; background: #080808; border: 1px solid #222; padding: 12px 16px; border-radius: 12px; color: white; font-size: 1rem; outline: none; transition: border-color 0.2s; }
-    input:focus { border-color: #00ff88; }
-    .button { width: 100%; background: #00ff88; color: #0a0a0a; border: none; padding: 14px; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 1rem; transition: transform 0.2s; margin-top: 8px; }
-    .button:hover { transform: translateY(-1px); }
-    .footer { margin-top: 24px; text-align: center; color: #888; font-size: 0.9rem; }
-    .footer a { color: #00ff88; text-decoration: none; }
-    .error-msg { background: #ff444422; color: #ff4444; padding: 12px; border-radius: 12px; margin-bottom: 20px; font-size: 0.9rem; display: none; }
-    
-    .password-wrapper { position: relative; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { color-scheme: dark; }
+
+    body {
+      font-family: "Inter", sans-serif;
+      background: #050505;
+      color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background-image: radial-gradient(circle at 70% 10%, rgba(0,255,136,0.06) 0%, transparent 50%),
+                        radial-gradient(circle at 30% 90%, rgba(0,255,136,0.04) 0%, transparent 50%);
+    }
+
+    .auth-wrapper {
+      width: 100%;
+      max-width: 420px;
+    }
+
+    /* Back to home */
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #666;
+      text-decoration: none;
+      font-size: 0.875rem;
+      margin-bottom: 32px;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: #00ff88; }
+
+    .auth-card {
+      background: rgba(17, 17, 17, 0.8);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 28px;
+      padding: 48px 40px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 32px 80px rgba(0,0,0,0.6);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 36px;
+    }
+    .logo {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #00ff88, #00cc6e);
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      color: #050505;
+      font-family: "IBM Plex Mono", monospace;
+      font-weight: 700;
+      font-size: 1rem;
+      box-shadow: 0 0 20px rgba(0,255,136,0.2);
+      flex-shrink: 0;
+    }
+    .brand-name {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 1.1rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    .auth-heading {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      line-height: 1.2;
+    }
+    .auth-sub {
+      color: #666;
+      font-size: 0.95rem;
+      margin-bottom: 36px;
+      line-height: 1.5;
+    }
+
+    .error-msg {
+      background: rgba(255, 68, 68, 0.1);
+      border: 1px solid rgba(255, 68, 68, 0.3);
+      color: #ff6b6b;
+      padding: 12px 16px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+      font-size: 0.875rem;
+      display: none;
+    }
+
+    .field {
+      margin-bottom: 20px;
+    }
+    .field label {
+      display: block;
+      margin-bottom: 8px;
+      color: #aaa;
+      font-size: 0.85rem;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+    .input-wrap input {
+      width: 100%;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      color: #fff;
+      padding: 14px 48px 14px 16px;
+      font-size: 0.95rem;
+      font-family: "Inter", sans-serif;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .input-wrap input:focus {
+      border-color: rgba(0,255,136,0.5);
+      background: rgba(0,255,136,0.03);
+    }
+    .input-wrap input::placeholder { color: #444; }
+
+    /* For fields without eye button */
+    .field > input {
+      width: 100%;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      color: #fff;
+      padding: 14px 16px;
+      font-size: 0.95rem;
+      font-family: "Inter", sans-serif;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .field > input:focus {
+      border-color: rgba(0,255,136,0.5);
+      background: rgba(0,255,136,0.03);
+    }
+    .field > input::placeholder { color: #444; }
+
     .toggle-password {
       position: absolute;
-      right: 12px;
+      right: 14px;
       top: 50%;
       transform: translateY(-50%);
       background: none;
       border: none;
-      color: #888;
+      color: #555;
       cursor: pointer;
       padding: 4px;
       display: flex;
       align-items: center;
+      justify-content: center;
+      transition: color 0.2s;
     }
     .toggle-password:hover { color: #00ff88; }
+
+    .submit-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #00ff88, #00cc6e);
+      color: #050505;
+      border: none;
+      border-radius: 14px;
+      padding: 15px;
+      font-size: 1rem;
+      font-weight: 700;
+      font-family: "Inter", sans-serif;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 15px rgba(0,255,136,0.2);
+    }
+    .submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0,255,136,0.3);
+    }
+    .submit-btn:active { transform: translateY(0); }
+
+    .auth-footer {
+      margin-top: 28px;
+      text-align: center;
+      color: #666;
+      font-size: 0.9rem;
+    }
+    .auth-footer a {
+      color: #00ff88;
+      text-decoration: none;
+      font-weight: 600;
+      transition: opacity 0.2s;
+    }
+    .auth-footer a:hover { opacity: 0.8; }
+
+    .divider {
+      border: none;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      margin: 24px 0;
+    }
   </style>
 </head>
 <body>
-  <div class="auth-card">
-    <div class="logo">LI</div>
-    <h1>Welcome Back</h1>
-    <p>Sign in to your Lead Intel account</p>
-    
-    <div class="error-msg" id="errorMsg"></div>
-    
-    <form id="loginForm">
-      <div class="field">
-        <label>Email Address</label>
-        <input type="email" id="email" required placeholder="name@company.com">
+  <div class="auth-wrapper">
+    <a href="/" class="back-link">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      Back to home
+    </a>
+
+    <div class="auth-card">
+      <div class="brand">
+        <div class="logo">LI</div>
+        <span class="brand-name">Lead Intel</span>
       </div>
-      <div class="field">
-        <label>Password</label>
-        <div class="password-wrapper">
-          <input type="password" id="password" required placeholder="••••••••">
-          <button type="button" class="toggle-password" onclick="toggleVisibility('password', this)">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-          </button>
+
+      <h1 class="auth-heading">Welcome back</h1>
+      <p class="auth-sub">Sign in to your account to continue</p>
+
+      <div class="error-msg" id="errorMsg"></div>
+
+      <form id="loginForm">
+        <div class="field">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" required placeholder="name@company.com" autocomplete="email">
         </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <div class="input-wrap">
+            <input type="password" id="password" required placeholder="••••••••" autocomplete="current-password">
+            <button type="button" class="toggle-password" onclick="toggleVisibility('password', this)" aria-label="Toggle password visibility">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            </button>
+          </div>
+        </div>
+        <button type="submit" class="submit-btn" id="submitBtn">Sign In</button>
+      </form>
+
+      <hr class="divider">
+      <div class="auth-footer">
+        Don't have an account? <a href="/signup">Create one free</a>
       </div>
-      <button type="submit" class="button">Sign In</button>
-    </form>
-    
-    <div class="footer">
-      Don't have an account? <a href="/signup">Sign up</a>
     </div>
   </div>
 
@@ -76,10 +261,10 @@
       const input = document.getElementById(id);
       if (input.type === 'password') {
         input.type = 'text';
-        btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>';
+        btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>';
       } else {
         input.type = 'password';
-        btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+        btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
       }
     }
 
@@ -88,24 +273,33 @@
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
       const errorMsg = document.getElementById('errorMsg');
-      
+      const submitBtn = document.getElementById('submitBtn');
+
+      submitBtn.textContent = 'Signing in...';
+      submitBtn.disabled = true;
+      errorMsg.style.display = 'none';
+
       try {
         const res = await fetch('/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: new URLSearchParams({ email, password })
         });
-        
+
         if (res.ok) {
           window.location.href = '/';
         } else {
           const data = await res.json();
-          errorMsg.textContent = data.detail || 'Login failed';
+          errorMsg.textContent = data.detail || 'Invalid email or password';
           errorMsg.style.display = 'block';
+          submitBtn.textContent = 'Sign In';
+          submitBtn.disabled = false;
         }
       } catch (err) {
         errorMsg.textContent = 'Something went wrong. Please try again.';
         errorMsg.style.display = 'block';
+        submitBtn.textContent = 'Sign In';
+        submitBtn.disabled = false;
       }
     });
   </script>

@@ -682,17 +682,6 @@
         <label><span>Enable AI Enrichment</span></label>
         <input id="aiToggle" type="checkbox" checked />
       </div>
-      <div class="section field">
-        <div style="display: flex; justify-content: space-between;">
-          <label for="minScore">Min AI Score</label>
-          <span id="scoreVal" style="color: #00ff88; font-weight: 700;">0</span>
-        </div>
-        <input id="minScore" type="range" min="0" max="100" value="0" style="width: 100%; accent-color: #00ff88; cursor: pointer;" />
-      </div>
-      <div class="section toggle-row">
-        <label><span>Verified Contacts Only</span></label>
-        <input id="contactOnly" type="checkbox" />
-      </div>
       <button class="button" id="searchButton">Search leads</button>
       <div class="resizer" id="sidebarResizer"></div>
     </aside>
@@ -856,8 +845,6 @@
       city: "",
       keywords: "",
       enableAi: true,
-      minScore: 0,
-      contactOnly: false,
       tableSearch: "",
     };
 
@@ -869,8 +856,6 @@
       cityInput: document.getElementById("cityInput"),
       keywordsInput: document.getElementById("keywordsInput"),
       aiToggle: document.getElementById("aiToggle"),
-      minScore: document.getElementById("minScore"),
-      contactOnly: document.getElementById("contactOnly"),
       searchButton: document.getElementById("searchButton"),
       statusText: document.getElementById("statusText"),
       statTotal: document.getElementById("statTotal"),
@@ -981,15 +966,6 @@
       elements.aiToggle.addEventListener("change", () => {
         state.enableAi = elements.aiToggle.checked;
       });
-      elements.minScore.addEventListener("input", () => {
-        state.minScore = parseInt(elements.minScore.value) || 0;
-        document.getElementById('scoreVal').innerText = state.minScore;
-        renderLeads();
-      });
-      elements.contactOnly.addEventListener("change", () => {
-        state.contactOnly = elements.contactOnly.checked;
-        renderLeads();
-      });
       elements.tableSearch.addEventListener("input", () => {
         state.tableSearch = elements.tableSearch.value.toLowerCase();
         renderLeads();
@@ -1043,9 +1019,7 @@
         if (!terms.every((term) => haystack.includes(term))) return false;
       }
 
-      const score = lead.ai_score ?? 0;
-      if (score < (state.minScore || 0)) return false;
-      if (state.contactOnly && !lead.email && !lead.phone) return false;
+
       
       if (state.tableSearch) {
         const haystack = [lead.name, lead.description, lead.industry, lead.location, lead.website, lead.email, lead.phone].join(" ").toLowerCase();

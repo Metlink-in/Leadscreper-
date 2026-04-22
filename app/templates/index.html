@@ -875,6 +875,7 @@
       keywords: "",
       enableAi: true,
       tableSearch: "",
+      filterCategory: "all",
     };
 
     const elements = {
@@ -1294,7 +1295,7 @@
         state.leads = [...newLeads, ...state.leads.map((lead) => ({ ...lead, isNew: false }))];
         state.searchId = data.search_id;
         state.page = 1;
-        renderLeads();
+        filterByCategory('all');
         showToast(`Search completed with ${data.total} leads.`);
       } catch (error) {
         showToast(error.message || "Unable to complete search.");
@@ -1308,13 +1309,7 @@
         showToast("Run a search before exporting.");
         return;
       }
-      const url = `/api/export/${format}?search_id=${encodeURIComponent(state.searchId)}`;
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = "";
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
+      window.location.href = `/api/export/${format}?search_id=${encodeURIComponent(state.searchId)}`;
     }
 
     document.querySelectorAll("th[data-sort]").forEach((header) => {
@@ -1351,7 +1346,7 @@
           if (l.category) state.selectedCategories.add(parseInt(l.category));
         });
         
-        renderLeads();
+        filterByCategory('all');
         showToast(`Loaded ${data.total} leads from history.`);
       } catch (e) {
         showToast(e.message);

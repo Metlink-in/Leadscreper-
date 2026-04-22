@@ -215,7 +215,7 @@
         <div class="field">
           <label for="search_api_key">SearchApi.io API Key</label>
           <div class="password-wrapper">
-            <input type="password" id="search_api_key" name="search_api_key" value="{{ '********' if user.search_api_key else '' }}" placeholder="Enter your SearchApi.io key">
+            <input type="password" id="search_api_key" name="search_api_key" value="{{ user.search_api_key if user.search_api_key else '' }}" placeholder="Enter your SearchApi.io key">
             <button type="button" class="toggle-password" onclick="toggleVisibility('search_api_key', this)">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
             </button>
@@ -224,7 +224,7 @@
         <div class="field">
           <label for="gemini_api_key">Gemini API Key</label>
           <div class="password-wrapper">
-            <input type="password" id="gemini_api_key" name="gemini_api_key" value="{{ '********' if user.gemini_api_key else '' }}" placeholder="Enter your Gemini key">
+            <input type="password" id="gemini_api_key" name="gemini_api_key" value="{{ user.gemini_api_key if user.gemini_api_key else '' }}" placeholder="Enter your Gemini key">
             <button type="button" class="toggle-password" onclick="toggleVisibility('gemini_api_key', this)">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
             </button>
@@ -233,7 +233,7 @@
         <div class="field">
           <label for="openai_api_key">OpenAI API Key (optional)</label>
           <div class="password-wrapper">
-            <input type="password" id="openai_api_key" name="openai_api_key" value="{{ '********' if user.openai_api_key else '' }}">
+            <input type="password" id="openai_api_key" name="openai_api_key" value="{{ user.openai_api_key if user.openai_api_key else '' }}">
             <button type="button" class="toggle-password" onclick="toggleVisibility('openai_api_key', this)">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
             </button>

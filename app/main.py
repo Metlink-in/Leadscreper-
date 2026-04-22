@@ -134,11 +134,11 @@ async def update_credentials(
     user = Depends(require_user)
 ):
     update_data = {}
-    if search_api_key and search_api_key != "********":
+    if search_api_key:
         update_data["search_api_key"] = search_api_key
-    if gemini_api_key and gemini_api_key != "********":
+    if gemini_api_key:
         update_data["gemini_api_key"] = gemini_api_key
-    if openai_api_key and openai_api_key != "********":
+    if openai_api_key:
         update_data["openai_api_key"] = openai_api_key
 
     if update_data:

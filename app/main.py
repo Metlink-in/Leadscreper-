@@ -67,7 +67,7 @@ async def login(
         raise HTTPException(status_code=400, detail="Incorrect email or password")
     
     access_token = create_access_token(data={"sub": user["email"]})
-    response.set_cookie(key="access_token", value=f"Bearer {access_token}", httponly=True)
+    response.set_cookie(key="access_token", value=f"Bearer {access_token}", httponly=True, path="/")
     return {"message": "Login successful"}
 
 @app.get("/signup", response_class=HTMLResponse)
@@ -98,13 +98,16 @@ async def signup(
     await db_service.create_user(user_data)
     
     access_token = create_access_token(data={"sub": email})
-    response.set_cookie(key="access_token", value=f"Bearer {access_token}", httponly=True)
+    response.set_cookie(key="access_token", value=f"Bearer {access_token}", httponly=True, path="/")
     return {"message": "Signup successful"}
 
 @app.get("/logout")
-async def logout(response: Response):
-    response.delete_cookie("access_token")
-    return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+async def logout():
+    response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+    response.delete_cookie(key="access_token", path="/")
+    # Also set expired to be absolutely sure
+    response.set_cookie(key="access_token", value="", expires=0, path="/")
+    return response
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request, user = Depends(get_current_user)):

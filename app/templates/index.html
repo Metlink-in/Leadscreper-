@@ -1127,6 +1127,12 @@
       const pageLeads = state.filtered.slice(start, start + state.pageSize);
       elements.leadTableBody.innerHTML = "";
       pageLeads.forEach((lead) => {
+        // Sanitize website: if it contains 'follower', move to followers field
+        if (lead.website && lead.website.toLowerCase().includes('follower')) {
+          lead.followers = lead.followers || lead.website;
+          lead.website = null;
+        }
+
         const row = document.createElement("tr");
         if (!lead.isNew) row.classList.add("old");
         row.innerHTML = `

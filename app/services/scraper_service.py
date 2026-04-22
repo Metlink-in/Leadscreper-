@@ -14,8 +14,8 @@ from app.services import serp_service
 logger = logging.getLogger(__name__)
 
 
-def _extract_contact_info(text: str) -> tuple[Optional[str], Optional[str]]:
-    """Extract email and phone from text using comprehensive regex patterns."""
+def _extract_contact_info(text: str) -> tuple[Optional[str], Optional[str], Optional[str]]:
+    """Extract email, phone, and website from text using comprehensive regex patterns."""
     import re
 
     # Enhanced email pattern - more comprehensive
@@ -40,7 +40,12 @@ def _extract_contact_info(text: str) -> tuple[Optional[str], Optional[str]]:
             phone = re.sub(r'[^\d+\-\(\)\s]', '', phone).strip()
             break
 
-    return email, phone
+    # Extract website URL (http/https)
+    website_pattern = r'https?://[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?:/[a-zA-Z0-9./_\-%]*)?'
+    website_match = re.search(website_pattern, text)
+    extracted_website = website_match.group(0).rstrip('.;,') if website_match else None
+
+    return email, phone, extracted_website
 
 
 def _normalize_text(value: Optional[str]) -> str:
@@ -123,10 +128,14 @@ def _make_base_lead(
         keywords_matched.append(industry)
 
     # Extract contact info from description if not provided
-    if not email or not phone:
-        extracted_email, extracted_phone = _extract_contact_info(f"{name} {description}")
-        email = email or extracted_email
-        phone = phone or extracted_phone
+    # Extract contact info and website from description
+    extracted_email, extracted_phone, extracted_website = _extract_contact_info(f"{name} {description}")
+    if not email:
+        email = extracted_email
+    if not phone:
+        phone = extracted_phone
+    if not website and extracted_website:
+        website = extracted_website
 
     # If website is just a social profile, move it to post_url and clear website
     followers = None

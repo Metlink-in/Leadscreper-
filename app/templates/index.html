@@ -25,7 +25,16 @@
     body {
       margin: 0;
       min-height: 100vh;
-      background: #0a0a0a;
+      background: radial-gradient(circle at 80% 20%, #00ff8808, transparent), 
+                  radial-gradient(circle at 20% 80%, #00ff8805, transparent), 
+                  #0a0a0a;
+      background-attachment: fixed;
+      animation: bgPulse 20s ease-in-out infinite alternate;
+    }
+
+    @keyframes bgPulse {
+      0% { background-position: 0% 0%; }
+      100% { background-position: 100% 100%; }
     }
 
     a {
@@ -53,12 +62,13 @@
       width: 42px;
       height: 42px;
       border-radius: 12px;
-      background: linear-gradient(135deg, #00ff88, #0a0a0a);
+      background: linear-gradient(135deg, #00ff88, #00cc6e);
       display: grid;
       place-items: center;
       color: #0a0a0a;
       font-family: "IBM Plex Mono", monospace;
       font-weight: 700;
+      box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
     }
 
     .brand h1 {
@@ -95,16 +105,20 @@
 
     .layout {
       display: grid;
-      grid-template-columns: minmax(320px, 340px) 1fr;
-      gap: 24px;
-      padding: 24px 32px 40px;
+      grid-template-columns: minmax(320px, 360px) 1fr;
+      gap: 32px;
+      padding: 32px 40px 60px;
+      max-width: 1800px;
+      margin: 0 auto;
     }
 
     .panel,
     .content {
-      background: #111111;
-      border: 1px solid #1a1a1a;
+      background: rgba(17, 17, 17, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
       border-radius: 24px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     }
 
     .panel {
@@ -156,21 +170,20 @@
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      background: #0f0f0f;
-      border: 1px solid #1a1a1a;
+      background: rgba(15, 15, 15, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.05);
       border-radius: 12px;
-      padding: 10px 12px;
+      padding: 10px 14px;
       cursor: pointer;
-      transition: background 0.2s ease;
-      font-size: 0.93rem;
-    }
-
-    .checkbox-grid input {
-      accent-color: #00ff88;
+      transition: all 0.2s ease;
+      font-size: 0.9rem;
+      color: #ccc;
     }
 
     .checkbox-grid label:hover {
-      background: #141414;
+      background: rgba(0, 255, 136, 0.05);
+      border-color: rgba(0, 255, 136, 0.2);
+      color: #fff;
     }
 
     .field {
@@ -218,17 +231,19 @@
       gap: 10px;
       border: none;
       border-radius: 14px;
-      background: #00ff88;
+      background: linear-gradient(135deg, #00ff88, #00cc6e);
       color: #0a0a0a;
       font-weight: 700;
       cursor: pointer;
-      padding: 14px 20px;
-      transition: transform 0.2s ease, background 0.2s ease;
+      padding: 14px 24px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 15px rgba(0, 255, 136, 0.2);
     }
 
     .button:hover,
     .export-button:hover {
-      transform: translateY(-1px);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 255, 136, 0.3);
     }
 
     .content {
@@ -264,21 +279,25 @@
     }
 
     .stat-card {
-      background: #0f0f0f;
-      border: 1px solid #1a1a1a;
-      border-radius: 18px;
-      padding: 18px;
+      background: rgba(15, 15, 15, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      border-radius: 20px;
+      padding: 20px;
+      transition: all 0.3s ease;
     }
 
     .stat-card h3 {
       margin: 0 0 10px;
-      font-size: 0.9rem;
-      color: #888888;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #666;
     }
 
     .stat-card p {
       margin: 0;
-      font-size: 1.5rem;
+      font-size: 1.75rem;
+      font-weight: 700;
       font-family: "IBM Plex Mono", monospace;
       color: #ffffff;
     }
@@ -292,13 +311,13 @@
     }
 
     .table-container {
-      background: #111111;
-      border-radius: 20px;
-      border: 1px solid #1a1a1a;
-      overflow-x: scroll; /* Force visible */
+      background: rgba(15, 15, 15, 0.3);
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      overflow-x: auto;
       margin-bottom: 24px;
-      scrollbar-width: auto;
-      scrollbar-color: #00ff88 #111111;
+      scrollbar-width: thin;
+      scrollbar-color: #00ff88 rgba(255,255,255,0.05);
     }
 
     .table-container::-webkit-scrollbar {
@@ -381,15 +400,16 @@
     }
 
     tbody tr {
-      background: #0f0f0f;
-    }
-
-    tbody tr.old {
-      opacity: 0.65;
+      background: transparent;
+      transition: background 0.2s ease;
     }
 
     tbody tr:hover {
-      background: #161616;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    td {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.02);
     }
 
     td a {
@@ -599,7 +619,9 @@
 
     .stat-card.clickable:hover {
       transform: translateY(-4px);
-      border-color: #00ff88;
+      background: rgba(0, 255, 136, 0.05);
+      border-color: rgba(0, 255, 136, 0.3);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
     }
 
     .stat-card.active {

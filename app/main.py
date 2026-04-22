@@ -109,7 +109,7 @@ async def logout(response: Response):
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request, user = Depends(get_current_user)):
     if not user:
-        return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
+        return templates.TemplateResponse("landing.html", {"request": request})
     return templates.TemplateResponse("index.html", {"request": request, "settings": settings, "user": user})
 
 @app.get("/history", response_class=HTMLResponse)

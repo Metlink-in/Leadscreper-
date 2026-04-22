@@ -1,5 +1,22 @@
+# Environment
 .env
+.venv/
+env/
+venv/
+ENV/
+
+# Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Vercel
 .vercel/
-exports/
+
+# App specific
+exports/*
+!exports/.gitkeep

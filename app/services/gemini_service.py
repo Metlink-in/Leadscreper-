@@ -105,18 +105,18 @@ async def _call_gemini_http(prompt: str, api_key: Optional[str] = None) -> Optio
         }
     }
 
-    max_retries = 3
+    max_retries = 1
     retry_delay = 2
 
     for attempt in range(max_retries):
         try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
+            async with httpx.AsyncClient(timeout=15.0) as client:
                 response = await client.post(url, json=payload)
                 if response.status_code == 429:
-                    logger.warning("[AI] Rate limit hit (429), retrying in %ds...", retry_delay)
-                    await asyncio.sleep(retry_delay)
-                    retry_delay *= 2
-                    continue
+                    logger.warning("[AI] Rate limit hit (429). Skipping further AI for this lead.")
+                    # If it's a hard limit, we could add to _GEMINI_DEAD_KEYS, but it might just be RPM limit.
+                    # For now, just break out and return None to skip AI enrichment for this lead.
+                    break
                 
                 # Check for fatal client errors to avoid infinite slow loops on bad keys
                 if 400 <= response.status_code < 500 and response.status_code != 429:

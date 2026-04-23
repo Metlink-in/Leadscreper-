@@ -288,18 +288,32 @@
 
     .stat-card h3 {
       margin: 0 0 10px;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: #666;
+      letter-spacing: 0.1em;
+      color: #888;
+      font-weight: 600;
     }
 
     .stat-card p {
       margin: 0;
-      font-size: 1.75rem;
-      font-weight: 700;
+      font-size: 1.8rem;
+      font-weight: 800;
       font-family: "IBM Plex Mono", monospace;
       color: #ffffff;
+      text-shadow: 0 0 20px rgba(255,255,255,0.1);
+    }
+    
+    .stat-card.clickable:hover {
+      background: rgba(0, 255, 136, 0.1);
+      border-color: rgba(0, 255, 136, 0.3);
+      transform: translateY(-3px);
+    }
+    
+    .stat-card.active {
+      background: rgba(0, 255, 136, 0.15);
+      border-color: var(--primary);
+      box-shadow: 0 0 30px rgba(0, 255, 136, 0.1);
     }
 
     .action-row {
@@ -727,24 +741,24 @@
         <p id="statusText">Start with a search to populate new leads.</p>
       </div>
       <div class="stats-row stat-grid">
-        <div class="stat-card clickable" id="cardTotal" onclick="filterByCategory('all')">
-          <h3>Total</h3>
+        <div class="stat-card clickable active" id="cardTotal" onclick="filterByCategory('all')">
+          <h3>Total Leads</h3>
           <p id="statTotal">0</p>
         </div>
         <div class="stat-card clickable" id="cardCat1" onclick="filterByCategory(1)">
-          <h3>Cat 1</h3>
+          <h3>Category 1</h3>
           <p id="statCat1">0</p>
         </div>
         <div class="stat-card clickable" id="cardCat2" onclick="filterByCategory(2)">
-          <h3>Cat 2</h3>
+          <h3>Category 2</h3>
           <p id="statCat2">0</p>
         </div>
         <div class="stat-card clickable" id="cardCat3" onclick="filterByCategory(3)">
-          <h3>Cat 3</h3>
+          <h3>Category 3</h3>
           <p id="statCat3">0</p>
         </div>
         <div class="stat-card clickable" id="cardCat4" onclick="filterByCategory(4)">
-          <h3>Cat 4</h3>
+          <h3>Category 4</h3>
           <p id="statCat4">0</p>
         </div>
       </div>

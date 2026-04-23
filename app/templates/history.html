@@ -16,6 +16,7 @@
       font-family: "Inter", sans-serif;
       background: #0a0a0a;
       color: #ffffff;
+      --primary: #00ff88;
     }
 
     * {
@@ -25,11 +26,14 @@
     body {
       margin: 0;
       min-height: 100vh;
-      background: #0a0a0a;
+      background: radial-gradient(circle at 80% 20%, #00ff8808, transparent), 
+                  radial-gradient(circle at 20% 80%, #00ff8805, transparent), 
+                  #0a0a0a;
+      background-attachment: fixed;
     }
 
     a {
-      color: #00ff88;
+      color: var(--primary);
       text-decoration: none;
     }
 
@@ -39,8 +43,9 @@
       justify-content: space-between;
       gap: 16px;
       padding: 24px 32px 20px;
-      border-bottom: 1px solid #111111;
-      background: #0a0a0a;
+      border-bottom: 1px solid #111;
+      background: rgba(10, 10, 10, 0.8);
+      backdrop-filter: blur(10px);
     }
 
     .brand {
@@ -53,12 +58,13 @@
       width: 42px;
       height: 42px;
       border-radius: 12px;
-      background: linear-gradient(135deg, #00ff88, #0a0a0a);
+      background: linear-gradient(135deg, var(--primary), #00cc6e);
       display: grid;
       place-items: center;
       color: #0a0a0a;
       font-family: "IBM Plex Mono", monospace;
       font-weight: 700;
+      box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
     }
 
     .brand h1 {
@@ -83,19 +89,22 @@
     }
 
     .panel {
-      background: #111111;
-      border: 1px solid #1a1a1a;
+      background: rgba(17, 17, 17, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
       border-radius: 24px;
-      padding: 24px;
+      padding: 32px;
       display: grid;
-      gap: 18px;
+      gap: 24px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     }
 
     h2 {
       margin: 0;
       font-family: "IBM Plex Mono", monospace;
       font-weight: 700;
-      color: #00ff88;
+      color: var(--primary);
+      font-size: 1.5rem;
     }
 
     .history-list {
@@ -104,18 +113,19 @@
     }
 
     .history-card {
-      background: #0f0f0f;
-      border: 1px solid #1a1a1a;
-      border-radius: 16px;
-      padding: 20px;
+      background: rgba(15, 15, 15, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      border-radius: 20px;
+      padding: 24px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      transition: border-color 0.2s ease, transform 0.2s ease;
+      transition: all 0.3s ease;
     }
 
     .history-card:hover {
-      border-color: #333333;
+      border-color: rgba(0, 255, 136, 0.3);
+      background: rgba(0, 255, 136, 0.02);
       transform: translateY(-2px);
     }
 
@@ -125,24 +135,27 @@
     }
 
     .card-title {
-      font-weight: 600;
-      font-size: 1.1rem;
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: #fff;
     }
 
     .card-meta {
       color: #888888;
       font-size: 0.9rem;
       display: flex;
-      gap: 16px;
+      gap: 12px;
       flex-wrap: wrap;
+      align-items: center;
     }
 
     .meta-tag {
-      background: #1a1a1a;
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-size: 0.8rem;
-      color: #cccccc;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      color: #ccc;
+      font-weight: 500;
     }
 
     .button {
@@ -152,27 +165,36 @@
       gap: 10px;
       border: none;
       border-radius: 12px;
-      background: #00ff88;
+      background: var(--primary);
       color: #0a0a0a;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
-      padding: 10px 16px;
-      transition: opacity 0.2s ease;
+      padding: 10px 20px;
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
     }
 
     .button:hover {
-      opacity: 0.9;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
     }
 
     .button.outline {
-      background: transparent;
-      border: 1px solid #333333;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       color: #ffffff;
+      font-weight: 500;
     }
     
     .button.outline:hover {
-      border-color: #00ff88;
-      color: #00ff88;
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    @media (max-width: 800px) {
+      .history-card { flex-direction: column; align-items: flex-start; gap: 20px; }
+      .history-card div:last-child { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
     }
   </style>
 

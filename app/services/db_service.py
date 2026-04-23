@@ -58,10 +58,13 @@ class DatabaseService:
     async def save_search(cls, search_id: str, search_data: Dict[str, Any], user_id: str):
         if cls.db is not None:
             try:
-                search_data["_id"] = search_id
                 search_data["user_id"] = user_id
-                await cls.db.searches.insert_one(search_data)
-                logger.info("[DB] Saved search %s for user %s.", search_id, user_id)
+                await cls.db.searches.replace_one(
+                    {"_id": search_id}, 
+                    search_data, 
+                    upsert=True
+                )
+                logger.info("[DB] Saved/Updated search %s for user %s.", search_id, user_id)
             except Exception as e:
                 logger.error("[DB] Error saving search: %s", e)
         else:

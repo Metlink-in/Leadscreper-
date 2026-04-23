@@ -1266,7 +1266,9 @@
       }
     }
 
+    let isSearching = false;
     async function performSearch() {
+      if (isSearching) return;
       if (state.selectedCategories.size === 0) {
         showToast("Select at least one category before searching.");
         return;
@@ -1275,6 +1277,12 @@
         showToast("Select at least one industry before searching.");
         return;
       }
+      
+      isSearching = true;
+      elements.searchButton.disabled = true;
+      elements.searchButton.style.opacity = "0.5";
+      elements.searchButton.style.cursor = "not-allowed";
+      
       const payload = {
         categories: Array.from(state.selectedCategories),
         industries: Array.from(state.selectedIndustries),
@@ -1307,6 +1315,10 @@
         showToast(error.message || "Unable to complete search.");
       } finally {
         elements.loadingOverlay.classList.add("hidden");
+        elements.searchButton.disabled = false;
+        elements.searchButton.style.opacity = "1";
+        elements.searchButton.style.cursor = "pointer";
+        isSearching = false;
       }
     }
 

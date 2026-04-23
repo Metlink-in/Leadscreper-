@@ -45,9 +45,9 @@ async def _execute_search(params: Dict[str, Any], api_key: Optional[str] = None)
             raise APIError(f"Connection failed: {str(exc)}", 500)
 
 
-async def search_google(query: str, num: int = 10, page: int = 1, api_key: Optional[str] = None) -> List[Dict[str, Any]]:
+async def search_google(query: str, num: int = 10, page: int = 1, location: Optional[str] = None, api_key: Optional[str] = None) -> List[Dict[str, Any]]:
     """Perform a standard Google search via SearchApi.io."""
-    logger.info("[SEARCH] Google search | query=%r | page=%d", query, page)
+    logger.info("[SEARCH] Google search | query=%r | page=%d | location=%r", query, page, location)
     try:
         params = {
             "engine": "google",
@@ -55,6 +55,9 @@ async def search_google(query: str, num: int = 10, page: int = 1, api_key: Optio
             "num": num,
             "page": page,
         }
+        if location:
+            params["location"] = location
+            
         result = await _execute_search(params, api_key=api_key)
         items = result.get("organic_results", []) or []
         logger.info("[SEARCH] Google returned %d results", len(items))

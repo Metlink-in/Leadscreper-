@@ -167,17 +167,17 @@ async def scrape_all(
     tasks = []
     
     combinations = [(c, i) for c in categories for i in industries]
-    # Cap the maximum combinations to 3 to prevent draining 40+ credits in one click
-    combinations = combinations[:3]
+    combinations = combinations[:10]
+    logger.info("[SCRAPE] Starting scrape for %d combinations", len(combinations))
     
     for category, industry in combinations:
-        q1 = f"{industry} companies contact email phone {query_location}".strip()
-        q2 = f"{industry} tech firms contact {query_location} {platform_query}".strip()
+        q1 = f"{industry} companies {query_location}".strip()
+        q2 = f"{industry} technology firms {query_location} {platform_query}".strip()
         
         tasks.append(
             asyncio.gather(
                 fetch_with_semaphore(serp_service.search_google_maps(q1, location=query_location, api_key=search_key)),
-                fetch_with_semaphore(serp_service.search_google(q2, num=max_results, api_key=search_key)),
+                fetch_with_semaphore(serp_service.search_google(q2, num=max_results, location=query_location, api_key=search_key)),
                 return_exceptions=True
             )
         )
@@ -197,6 +197,8 @@ async def scrape_all(
                     lead = _normalize_item(item, category, industry, country, city, keywords, user_id)
                     if lead: leads.append(lead)
 
+    logger.info("[SCRAPE] Found %d raw leads across all tasks", len(leads))
+    
     # Deduplicate leads based on website or name
     unique_leads = []
     seen = set()
@@ -207,6 +209,7 @@ async def scrape_all(
             unique_leads.append(lead)
     
     leads = unique_leads
+    logger.info("[SCRAPE] %d unique leads remaining after deduplication", len(leads))
 
     if enable_ai and leads:
         # Prioritize leads with contact info or websites to enrich only the best 25 leads

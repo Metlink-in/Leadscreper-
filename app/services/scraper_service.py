@@ -157,28 +157,45 @@ async def scrape_all(
     
     leads: List[Lead] = []
     
-    # Run searches for each category and industry
-    for category in categories:
-        for industry in industries:
-            try:
-                # Basic search logic consolidated
-                q1 = f"{industry} companies contact email phone {query_location}".strip()
-                q2 = f"{industry} tech firms contact {query_location} {platform_query}".strip()
-                
-                # Fetch from Maps and Search
-                results = await asyncio.gather(
-                    serp_service.search_google_maps(q1, location=query_location, api_key=search_key),
-                    serp_service.search_google(q2, num=max_results, api_key=search_key),
-                    return_exceptions=True
-                )
-                
-                for res in results:
-                    if isinstance(res, list):
-                        for item in res:
-                            lead = _normalize_item(item, category, industry, country, city, keywords, user_id)
-                            if lead: leads.append(lead)
-            except Exception as e:
-                logger.error("[SCRAPE] Error in task: %s", e)
+    # Run searches for each category and industry with strict concurrency limit
+    semaphore = asyncio.Semaphore(2)
+    
+    async def fetch_with_semaphore(coro):
+        async with semaphore:
+            return await coro
+
+    tasks = []
+    
+    combinations = [(c, i) for c in categories for i in industries]
+    # Cap the maximum combinations to 3 to prevent draining 40+ credits in one click
+    combinations = combinations[:3]
+    
+    for category, industry in combinations:
+        q1 = f"{industry} companies contact email phone {query_location}".strip()
+        q2 = f"{industry} tech firms contact {query_location} {platform_query}".strip()
+        
+        tasks.append(
+            asyncio.gather(
+                fetch_with_semaphore(serp_service.search_google_maps(q1, location=query_location, api_key=search_key)),
+                fetch_with_semaphore(serp_service.search_google(q2, num=max_results, api_key=search_key)),
+                return_exceptions=True
+            )
+        )
+            
+    # Gather all tasks concurrently but gated by semaphore
+    all_results = await asyncio.gather(*tasks)
+    
+    for category_industry_results, (category, industry) in zip(all_results, combinations):
+        for res in category_industry_results:
+            if isinstance(res, Exception):
+                from app.services.exceptions import APIError
+                if isinstance(res, APIError):
+                    raise res
+                logger.error("[SCRAPE] Warning: Ignored sub-fetch exception: %s", res)
+            elif isinstance(res, list):
+                for item in res:
+                    lead = _normalize_item(item, category, industry, country, city, keywords, user_id)
+                    if lead: leads.append(lead)
 
     if enable_ai and leads:
         try:

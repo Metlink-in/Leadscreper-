@@ -25,9 +25,9 @@
     body {
       margin: 0;
       min-height: 100vh;
-      background: radial-gradient(circle at 80% 20%, #00ff8808, transparent), 
-                  radial-gradient(circle at 20% 80%, #00ff8805, transparent), 
-                  #0a0a0a;
+      background: radial-gradient(circle at 80% 20%, #00ff8808, transparent),
+        radial-gradient(circle at 20% 80%, #00ff8805, transparent),
+        #0a0a0a;
       background-attachment: fixed;
     }
 
@@ -148,8 +148,11 @@
       margin-bottom: 20px;
       color: #00ff88;
     }
-    
-    .password-wrapper { position: relative; }
+
+    .password-wrapper {
+      position: relative;
+    }
+
     .toggle-password {
       position: absolute;
       right: 12px;
@@ -163,8 +166,15 @@
       display: flex;
       align-items: center;
     }
-    .toggle-password:hover { color: #00ff88; }
+
+    .toggle-password:hover {
+      color: #00ff88;
+    }
   </style>
+
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2300ffa3'/><text x='50%' y='65%' font-family='Arial, sans-serif' font-size='50' font-weight='bold' fill='%23000' text-anchor='middle'>LI</text></svg>"
+    type="image/svg+xml">
 </head>
 
 <body>
@@ -174,8 +184,8 @@
       <div>
         <h1>Lead Intel</h1>
         <div class="header-meta">
-          <a href="/">Dashboard</a> | 
-          <a href="/history">History</a> | 
+          <a href="/">Dashboard</a> |
+          <a href="/history">History</a> |
           <a href="/logout" style="color: #ff4444; margin-left: 8px;">Logout</a>
         </div>
       </div>
@@ -184,26 +194,37 @@
       <div style="font-weight: 600; color: #00ff88; margin-bottom: 4px;">{{ user.name }}</div>
     </div>
   </header>
-  
+
   {% if message %}
-  <div style="max-width: 600px; margin: 20px auto 0; padding: 12px 20px; background: #00ff8822; border: 1px solid #00ff88; border-radius: 12px; color: #00ff88; text-align: center;">
+  <div
+    style="max-width: 600px; margin: 20px auto 0; padding: 12px 20px; background: #00ff8822; border: 1px solid #00ff88; border-radius: 12px; color: #00ff88; text-align: center;">
     {{ message }}
   </div>
   {% endif %}
 
-    <div class="layout">
+  <div class="layout">
     <a href="/" class="back-link">&larr; Back to Dashboard</a>
-    
+
     <div class="panel" style="margin-bottom: 24px; border-color: rgba(0, 255, 136, 0.2);">
       <h2 style="color: #00ff88; font-size: 1.1rem; margin-bottom: 24px;">SearchApi.io Usage</h2>
       <div id="creditInfo" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
-        <div class="stat-card" style="background: rgba(0, 255, 136, 0.05); padding: 20px; border-radius: 16px; border: 1px solid rgba(0, 255, 136, 0.1);">
-          <div style="color: #888; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Remaining Credits</div>
-          <div id="remainingCredits" style="font-size: 2rem; font-weight: 700; color: #00ff88; font-family: 'IBM Plex Mono', monospace;">Loading...</div>
+        <div class="stat-card"
+          style="background: rgba(0, 255, 136, 0.05); padding: 20px; border-radius: 16px; border: 1px solid rgba(0, 255, 136, 0.1);">
+          <div
+            style="color: #888; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">
+            Remaining Credits</div>
+          <div id="remainingCredits"
+            style="font-size: 2rem; font-weight: 700; color: #00ff88; font-family: 'IBM Plex Mono', monospace;">
+            Loading...</div>
         </div>
-        <div class="stat-card" style="background: rgba(255, 255, 255, 0.02); padding: 20px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.05);">
-          <div style="color: #888; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Plan Type</div>
-          <div id="planType" style="font-size: 2rem; font-weight: 700; color: #ffffff; font-family: 'IBM Plex Mono', monospace;">Loading...</div>
+        <div class="stat-card"
+          style="background: rgba(255, 255, 255, 0.02); padding: 20px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.05);">
+          <div
+            style="color: #888; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">
+            Plan Type</div>
+          <div id="planType"
+            style="font-size: 2rem; font-weight: 700; color: #ffffff; font-family: 'IBM Plex Mono', monospace;">
+            Loading...</div>
         </div>
       </div>
     </div>
@@ -215,27 +236,43 @@
         <div class="field">
           <label for="search_api_key">SearchApi.io API Key</label>
           <div class="password-wrapper">
-            <input type="password" id="search_api_key" name="search_api_key" value="{{ user.search_api_key if user.search_api_key else '' }}" placeholder="Enter your SearchApi.io key">
+            <input type="password" id="search_api_key" name="search_api_key"
+              value="{{ user.search_api_key if user.search_api_key else '' }}"
+              placeholder="Enter your SearchApi.io key">
             <button type="button" class="toggle-password" onclick="toggleVisibility('search_api_key', this)">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
             </button>
           </div>
         </div>
         <div class="field">
           <label for="gemini_api_key">Gemini API Key</label>
           <div class="password-wrapper">
-            <input type="password" id="gemini_api_key" name="gemini_api_key" value="{{ user.gemini_api_key if user.gemini_api_key else '' }}" placeholder="Enter your Gemini key">
+            <input type="password" id="gemini_api_key" name="gemini_api_key"
+              value="{{ user.gemini_api_key if user.gemini_api_key else '' }}" placeholder="Enter your Gemini key">
             <button type="button" class="toggle-password" onclick="toggleVisibility('gemini_api_key', this)">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
             </button>
           </div>
         </div>
         <div class="field">
           <label for="openai_api_key">OpenAI API Key (optional)</label>
           <div class="password-wrapper">
-            <input type="password" id="openai_api_key" name="openai_api_key" value="{{ user.openai_api_key if user.openai_api_key else '' }}">
+            <input type="password" id="openai_api_key" name="openai_api_key"
+              value="{{ user.openai_api_key if user.openai_api_key else '' }}">
             <button type="button" class="toggle-password" onclick="toggleVisibility('openai_api_key', this)">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
             </button>
           </div>
         </div>
@@ -279,4 +316,5 @@
     }
   </script>
 </body>
+
 </html>

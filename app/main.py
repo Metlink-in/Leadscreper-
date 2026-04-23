@@ -3,10 +3,12 @@ from pathlib import Path
 from uuid import uuid4
 from datetime import datetime, timedelta
 from typing import Optional
+import traceback
 
+import os
 from fastapi import FastAPI, Form, Request, Depends, HTTPException, status, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -36,7 +38,17 @@ app.add_middleware(
 )
 
 # Templates
-templates = Jinja2Templates(directory="app/templates")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    error_msg = f"{type(exc).__name__}: {str(exc)}\n{traceback.format_exc()}"
+    logger.error(f"Global Exception: {error_msg}")
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal Server Error", "traceback": error_msg}
+    )
 
 @app.on_event("startup")
 async def startup_db_client():
@@ -134,11 +146,11 @@ async def update_credentials(
     user = Depends(require_user)
 ):
     update_data = {}
-    if search_api_key and search_api_key != "********":
+    if search_api_key:
         update_data["search_api_key"] = search_api_key
-    if gemini_api_key and gemini_api_key != "********":
+    if gemini_api_key:
         update_data["gemini_api_key"] = gemini_api_key
-    if openai_api_key and openai_api_key != "********":
+    if openai_api_key:
         update_data["openai_api_key"] = openai_api_key
 
     if update_data:
@@ -163,6 +175,8 @@ async def health():
 
 @app.get("/api/credits")
 async def credits(user = Depends(require_user)):
-    # Use user's specific key if available, otherwise fallback to global
-    key = user.get("search_api_key") or settings.search_api_key
+    # Use only the user's specific key. Do not fallback to global env keys to prevent users from consuming admin credits.
+    key = user.get("search_api_key")
+    if not key:
+        return {"account_info": {"plan": "No Key", "credits_remaining": 0}, "credits": 0, "plan": "No Key"}
     return await get_account_info(override_key=key)

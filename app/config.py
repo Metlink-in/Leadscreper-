@@ -8,13 +8,13 @@ class Settings(BaseSettings):
     search_api_provider: str = "searchapi"
     search_api_key: Optional[str] = None
     search_api_base_url: str = "https://www.searchapi.io/api/v1"
-    gemini_api_key: str
+    gemini_api_key: str = "MISSING_GEMINI_API_KEY"
     openai_api_key: Optional[str] = None
-    app_secret: str
-    mongodb_uri: str
+    app_secret: str = "DEFAULT_INSECURE_SECRET_CHANGE_ME"
+    mongodb_uri: str = "mongodb://localhost:27017"
     max_results_per_source: int = 20
     enable_ai_enrichment: bool = True
-    export_dir: str = "exports"
+    export_dir: str = "/tmp/exports"
     cors_origins: List[str] = ["*"]
 
 

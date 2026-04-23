@@ -643,6 +643,8 @@
       }
     }
   </style>
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2300ffa3'/><text x='50%' y='65%' font-family='Arial, sans-serif' font-size='50' font-weight='bold' fill='%23000' text-anchor='middle'>LI</text></svg>" type="image/svg+xml">
 </head>
 
 <body>
@@ -875,6 +877,7 @@
       keywords: "",
       enableAi: true,
       tableSearch: "",
+      filterCategory: "all",
     };
 
     const elements = {
@@ -1268,6 +1271,10 @@
         showToast("Select at least one category before searching.");
         return;
       }
+      if (state.selectedIndustries.size === 0) {
+        showToast("Select at least one industry before searching.");
+        return;
+      }
       const payload = {
         categories: Array.from(state.selectedCategories),
         industries: Array.from(state.selectedIndustries),
@@ -1294,7 +1301,7 @@
         state.leads = [...newLeads, ...state.leads.map((lead) => ({ ...lead, isNew: false }))];
         state.searchId = data.search_id;
         state.page = 1;
-        renderLeads();
+        filterByCategory('all');
         showToast(`Search completed with ${data.total} leads.`);
       } catch (error) {
         showToast(error.message || "Unable to complete search.");
@@ -1308,13 +1315,7 @@
         showToast("Run a search before exporting.");
         return;
       }
-      const url = `/api/export/${format}?search_id=${encodeURIComponent(state.searchId)}`;
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = "";
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
+      window.location.href = `/api/export/${format}?search_id=${encodeURIComponent(state.searchId)}`;
     }
 
     document.querySelectorAll("th[data-sort]").forEach((header) => {
@@ -1351,7 +1352,7 @@
           if (l.category) state.selectedCategories.add(parseInt(l.category));
         });
         
-        renderLeads();
+        filterByCategory('all');
         showToast(`Loaded ${data.total} leads from history.`);
       } catch (e) {
         showToast(e.message);

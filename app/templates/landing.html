@@ -6,247 +6,603 @@
   <title>Lead Intel - Premium AI Lead Generation</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
-    :root { color-scheme: dark; font-family: "Inter", sans-serif; background: #050505; color: #ffffff; --primary: #00ff88; --primary-dark: #00cc6e; }
-    * { box-sizing: border-box; }
-    body { 
-      margin: 0; 
-      min-height: 100vh; 
-      background: #050505;
-      overflow-x: hidden;
-    }
-    
-    .bg-blobs {
-      position: fixed;
-      inset: 0;
-      z-index: -1;
-      overflow: hidden;
-    }
-    .blob {
-      position: absolute;
-      width: 500px;
-      height: 500px;
-      background: radial-gradient(circle, rgba(0, 255, 136, 0.08) 0%, transparent 70%);
-      filter: blur(60px);
-      border-radius: 50%;
-      animation: move 20s infinite alternate;
-    }
-    .blob-1 { top: -100px; right: -100px; }
-    .blob-2 { bottom: -100px; left: -100px; animation-delay: -5s; }
-    @keyframes move {
-      0% { transform: translate(0, 0) scale(1); }
-      100% { transform: translate(100px, 50px) scale(1.1); }
+    :root {
+      --bg: #030303;
+      --text: #ffffff;
+      --primary: #00ff88;
+      --primary-bright: #33ffa3;
+      --primary-dim: rgba(0, 255, 136, 0.15);
+      --surface: #0a0a0a;
+      --border: rgba(255, 255, 255, 0.1);
     }
 
-    header { 
-      display: flex; 
-      align-items: center; 
-      justify-content: space-between; 
-      padding: 32px 5%; 
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+      line-height: 1.5;
+    }
+
+    /* Ambient Background Glows */
+    .glow-bg {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      z-index: -2;
+      pointer-events: none;
+    }
+    .glow-orb {
+      position: absolute;
+      width: 800px;
+      height: 800px;
+      background: radial-gradient(circle, rgba(0,255,136,0.08) 0%, transparent 60%);
+      border-radius: 50%;
+      top: -300px;
+      left: 50%;
+      transform: translateX(-50%);
+      filter: blur(80px);
+      animation: pulseOrb 8s infinite alternate ease-in-out;
+    }
+    @keyframes pulseOrb {
+      0% { opacity: 0.5; transform: translateX(-50%) scale(1); }
+      100% { opacity: 1; transform: translateX(-50%) scale(1.1); }
+    }
+
+    /* Navbar */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px 5%;
+      max-width: 1400px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 100;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 1.4rem;
+      letter-spacing: -0.02em;
+    }
+    .logo-mark {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--primary), #00cc6e);
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      color: #000;
+      font-size: 0.9rem;
+      box-shadow: 0 0 20px var(--primary-dim);
+    }
+    .nav-links { display: flex; gap: 16px; align-items: center; }
+    .btn { text-decoration: none; font-weight: 600; padding: 10px 20px; border-radius: 12px; font-size: 0.95rem; transition: all 0.3s ease; }
+    .btn-ghost { color: #a0a0a0; }
+    .btn-ghost:hover { color: #fff; }
+    .btn-glow { background: rgba(0,255,136,0.05); color: var(--primary); border: 1px solid rgba(0,255,136,0.3); box-shadow: inset 0 0 20px rgba(0,255,136,0.05); }
+    .btn-glow:hover { background: var(--primary); color: #000; box-shadow: 0 0 30px var(--primary-dim); border-color: var(--primary); }
+
+    /* Hero Section */
+    .hero-wrapper {
+      position: relative;
+      padding: 100px 20px 20px;
+      text-align: center;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: rgba(0, 255, 136, 0.05);
+      border: 1px solid rgba(0, 255, 136, 0.2);
+      border-radius: 99px;
+      color: var(--primary-bright);
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 32px;   
+      backdrop-filter: blur(8px);
+      text-transform: uppercase;
+      box-shadow: 0 0 20px rgba(0,255,136,0.1);
+    }
+    .pill-dot {
+      width: 6px; height: 6px; background: var(--primary); border-radius: 50%;
+      box-shadow: 0 0 10px var(--primary);
+      animation: blink 2s infinite;
+    }
+    @keyframes blink { 0%, 100% { opacity: 1; box-shadow: 0 0 10px var(--primary); } 50% { opacity: 0.4; box-shadow: none; } }
+
+    .hero-wrapper h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(3.2rem, 7vw, 5.2rem);
+      font-weight: 700;
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+      margin: 0 0 24px;
+      background: radial-gradient(75% 75% at 50% 0%, #FFFFFF 0%, #7A7A7A 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    }
+    .hero-wrapper p {
+      font-size: 1.3rem;
+      color: #999;
+      max-width: 650px;
+      margin: 0 auto 40px;
+      line-height: 1.6;
+    }
+    
+    .cta-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+    .btn-massive {
+      background: linear-gradient(180deg, #00ff88 0%, #00cc6e 100%);
+      color: #000;
+      padding: 20px 48px;
+      font-size: 1.15rem;
+      border-radius: 16px;
+      display: inline-block;
+      text-decoration: none;
+      font-weight: 700;
+      box-shadow: 0 10px 30px rgba(0, 255, 136, 0.2), inset 0 2px 0 rgba(255,255,255,0.4);
+      transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+      position: relative;
+    }
+    .btn-massive:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 40px rgba(0, 255, 136, 0.4), inset 0 2px 0 rgba(255,255,255,0.5);
+    }
+    .cta-subtext { color: #666; font-size: 0.9rem; }
+
+    /* Premium Small System Container (macOS style window) */
+    .system-showcase {
+      max-width: 1200px;
+      margin: 40px auto 100px;
+      padding: 0 20px;
+      perspective: 1200px;
+    }
+
+    .os-window {
+      position: relative;
+      background: rgba(10,10,10,0.8);
+      border-radius: 16px;
+      /* Super premium glowing border */
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 40px 100px rgba(0,0,0,0.9), 0 0 0 1px rgba(0, 255, 136, 0.1), 0 0 80px rgba(0,255,136,0.15);
+      backdrop-filter: blur(30px);
+      overflow: hidden;
+      /* 3D Float Animation */
+      transform: rotateX(8deg) scale(0.95);
+      transform-origin: top center;
+      transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.6s ease;
+      animation: floatWin 6s ease-in-out infinite alternate;
+    }
+    @keyframes floatWin {
+      0% { transform: rotateX(8deg) scale(0.95) translateY(0); }
+      100% { transform: rotateX(8deg) scale(0.95) translateY(-15px); }
+    }
+    
+    .system-showcase:hover .os-window {
+      animation: none;
+      transform: rotateX(0deg) scale(1) translateY(0);
+      box-shadow: 0 50px 120px rgba(0,0,0,1), 0 0 0 1px rgba(0, 255, 136, 0.25), 0 0 120px rgba(0,255,136,0.25);
+    }
+
+    /* Aura inside the window */
+    .os-window::before {
+      content: '';
+      position: absolute;
+      top: -100px; right: -100px;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(0,255,136,0.1), transparent 60%);
+      filter: blur(40px);
+      pointer-events: none;
+    }
+    
+    /* Titlebar */
+    .os-header {
+      height: 56px;
+      background: rgba(255,255,255,0.02);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 10px;
+      position: relative;
+      z-index: 2;
+    }
+    .os-dot { width: 14px; height: 14px; border-radius: 50%; }
+    .os-dot.red { background: #ff5f56; box-shadow: inset 0px 4px 6px rgba(255,255,255,0.2); }
+    .os-dot.yellow { background: #ffbd2e; box-shadow: inset 0px 4px 6px rgba(255,255,255,0.2); }
+    .os-dot.green { background: #27c93f; box-shadow: inset 0px 4px 6px rgba(255,255,255,0.2); }
+    
+    .os-domain {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 6px 80px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      color: #888;
+      font-family: monospace;
+      letter-spacing: 0.05em;
+    }
+
+    /* Inner Interface Layout */
+    .os-body {
+      display: flex;
+      height: 600px;
+      background: #050505;
+      position: relative;
+    }
+    
+    .mock-sidebar {
+      width: 260px;
+      border-right: 1px solid rgba(255,255,255,0.04);
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      background: rgba(255,255,255,0.01);
+    }
+    .mock-sb-item { height: 36px; background: rgba(255,255,255,0.02); border-radius: 8px; display: flex; align-items: center; padding: 0 16px; opacity: 0.6; }
+    .mock-sb-inner1 { width: 24px; height: 24px; border-radius: 6px; background: rgba(255,255,255,0.1); margin-right: 12px; }
+    .mock-sb-inner2 { width: 80px; height: 8px; background: rgba(255,255,255,0.2); border-radius: 4px; }
+
+    .mock-sb-item.active { background: rgba(0,255,136,0.1); border: 1px solid rgba(0,255,136,0.2); opacity: 1; }
+    .mock-sb-item.active .mock-sb-inner1 { background: rgba(0,255,136,0.2); }
+    .mock-sb-item.active .mock-sb-inner2 { background: var(--primary); }
+    
+    .mock-main {
+      flex: 1;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+    }
+    .mock-stats { display: flex; gap: 20px; }
+    .mock-stat { flex: 1; height: 110px; background: rgba(255,255,255,0.02); border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); position: relative; overflow: hidden; padding: 20px;}
+    .mock-stat::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: var(--primary); opacity: 0.5; }
+    .mock-st-t1 { width: 40%; height: 10px; background: rgba(255,255,255,0.2); border-radius: 4px; margin-bottom: 20px;}
+    .mock-st-t2 { width: 60%; height: 24px; background: #fff; border-radius: 6px; }
+
+    .mock-table { flex: 1; background: rgba(0,0,0,0.4); border-radius: 16px; border: 1px solid rgba(255,255,255,0.04); padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+    .mock-row { height: 48px; background: rgba(255,255,255,0.02); border-radius: 8px; display: flex; align-items: center; padding: 0 20px; gap: 30px; border: 1px solid transparent; }
+    .mock-row:first-child { background: transparent; border: none; opacity: 0.5; height: 30px;}
+    .mock-row:hover { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.1); }
+    
+    .mock-cell-1 { width: 25%; display: flex; align-items: center; gap: 12px; }
+    .mock-avatar { width: 28px; height: 28px; border-radius: 14px; background: rgba(255,255,255,0.1); }
+    .mock-line-main { width: 100px; height: 10px; background: #fff; border-radius: 4px; }
+    
+    .mock-cell-2 { width: 25%; height: 10px; background: rgba(255,255,255,0.1); border-radius: 4px; }
+    
+    .mock-badge { padding: 4px 12px; background: rgba(0,255,136,0.1); border: 1px solid rgba(0,255,136,0.2); border-radius: 20px; width: 60px; height: 20px; }
+    .mock-cell-3 { width: 100px; height: 10px; background: rgba(255,255,255,0.05); border-radius: 4px; margin-left: auto;}
+
+    /* Embedded Dashboard CTA Overlay */
+    .cta-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.15);
+      backdrop-filter: blur(3px);
+      display: grid;
+      place-items: center;
+      z-index: 10;
+      border-radius: 0 0 16px 16px;
+    }
+    .cta-card {
+      background: linear-gradient(180deg, rgba(30,30,30,0.95) 0%, rgba(10,10,10,0.98) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 40px 30px;
+      border-radius: 28px;
+      text-align: center;
+      box-shadow: 0 50px 100px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,255,136,0.1), 0 0 100px rgba(0,255,136,0.1), inset 0 2px 0 rgba(255,255,255,0.06);
+      max-width: 480px;
+      position: relative;
+    }
+    .cta-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 15%; right: 15%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(0,255,136,0.8), transparent);
+      box-shadow: 0 4px 20px rgba(0,255,136,0.4);
+    }
+    .cta-card h3 {
+      font-size: 2.1rem;
+      font-family: 'Space Grotesk', sans-serif;
+      margin: 0 0 12px;
+      letter-spacing: -0.04em;
+      background: linear-gradient(180deg, #ffffff 0%, #999999 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .cta-card p {
+      color: #a0a0a0;
+      font-size: 1rem;
+      margin: 0 0 28px;
+      line-height: 1.5;
+    }
+    .cta-buttons {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+    }
+    .btn-create {
+      background: var(--primary);
+      color: #000;
+      text-decoration: none;
+      padding: 14px 28px;
+      border-radius: 12px;
+      font-weight: 700;
+      box-shadow: 0 10px 20px rgba(0,255,136,0.2);
+      transition: transform 0.2s;
+    }
+    .btn-create:hover { transform: translateY(-2px); }
+    .btn-signin {
+      background: rgba(255,255,255,0.03);
+      color: #fff;
+      text-decoration: none;
+      padding: 14px 28px;
+      border-radius: 12px;
+      font-weight: 600;
+      border: 1px solid rgba(255,255,255,0.08);
+      transition: background 0.2s;
+    }
+    .btn-signin:hover { background: rgba(255,255,255,0.08); }
+
+    /* Features Grid */
+    .features {
+      padding: 60px 5% 100px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .features-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+    .features-header h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 2.2rem;
+      margin: 0;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 30px;
+    }
+    .card {
+      background: rgba(20, 20, 20, 0.4);
+      border: 1px solid var(--border);
+      padding: 40px;
+      border-radius: 24px;
+      transition: all 0.3s cubic-bezier(0.2,0.8,0.2,1);
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background: radial-gradient(800px circle at bottom right, rgba(0,255,136,0.08), transparent 40%);
+      opacity: 0; transition: opacity 0.5s;
+    }
+    .card:hover {
+      border-color: rgba(0, 255, 136, 0.5);
+      transform: translateY(-5px);
+      background: rgba(25, 25, 25, 0.8);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }
+    .card:hover::before { opacity: 1; }
+    
+    .card-icon {
+      width: 54px; height: 54px;
+      background: rgba(0,255,136,0.05);
+      border: 1px solid rgba(0,255,136,0.2);
+      border-radius: 14px;
+      display: grid; place-items: center;
+      margin-bottom: 24px;
+      color: var(--primary);
+    }
+    .card h3 { font-size: 1.3rem; margin: 0 0 12px; font-family: 'Space Grotesk', sans-serif; letter-spacing: -0.02em; }
+    .card p { color: #888; margin: 0; line-height: 1.6; }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 60px 5%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #666;
+      font-size: 0.9rem;
       max-width: 1400px;
       margin: 0 auto;
     }
-    .brand { display: flex; align-items: center; gap: 14px; }
-    .logo { 
-      width: 44px; height: 44px; 
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark)); 
-      border-radius: 12px; 
-      display: grid;  place-items: center; 
-      color: #050505; 
-      font-family: "IBM Plex Mono", monospace; 
-      font-weight: 700;
-      box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
-    }
-    header h1 { margin: 0; font-size: 1.25rem; letter-spacing: 0.05em; font-family: "IBM Plex Mono", monospace; }
-    
-    .nav-buttons { display: flex; gap: 20px; }
-    .btn { padding: 12px 28px; border-radius: 14px; font-weight: 600; text-decoration: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-size: 0.95rem; }
-    .btn-outline { border: 1px solid rgba(255,255,255,0.1); color: #fff; background: rgba(255,255,255,0.03); backdrop-filter: blur(10px); }
-    .btn-outline:hover { border-color: var(--primary); color: var(--primary); background: rgba(0, 255, 136, 0.05); }
-    .btn-primary { background: var(--primary); color: #050505; box-shadow: 0 4px 15px rgba(0, 255, 136, 0.2); }
-    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0, 255, 136, 0.3); }
 
-    .hero { max-width: 1200px; margin: 80px auto; text-align: center; padding: 0 20px; }
-    .badge {
-      display: inline-block;
-      padding: 8px 16px;
-      background: rgba(0, 255, 136, 0.1);
-      border: 1px solid rgba(0, 255, 136, 0.2);
-      border-radius: 99px;
-      color: var(--primary);
-      font-size: 0.85rem;
-      font-weight: 600;
-      margin-bottom: 24px;
-      letter-spacing: 0.05em;
-    }
-    .hero h2 { 
-      font-size: clamp(3rem, 8vw, 5.5rem); 
-      font-weight: 800; 
-      margin: 0 0 28px; 
-      line-height: 1; 
-      letter-spacing: -0.02em;
-      background: linear-gradient(to bottom, #fff, #888); 
-      -webkit-background-clip: text; 
-      -webkit-text-fill-color: transparent; 
-    }
-    .hero p { font-size: 1.3rem; color: #a0a0a0; max-width: 700px; margin: 0 auto 48px; line-height: 1.6; }
-    
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
-      max-width: 1200px;
-      margin: 80px auto;
-      padding: 0 20px;
-    }
-    .feature-card {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      border-radius: 24px;
-      padding: 40px;
-      transition: all 0.3s ease;
-    }
-    .feature-card:hover {
-      background: rgba(255, 255, 255, 0.05);
-      border-color: rgba(0, 255, 136, 0.2);
-      transform: translateY(-5px);
-    }
-    .feature-icon {
-      width: 48px; height: 48px;
-      background: rgba(0, 255, 136, 0.1);
-      border-radius: 12px;
-      display: grid; place-items: center;
-      color: var(--primary);
-      margin-bottom: 24px;
-    }
-    .feature-card h3 { margin: 0 0 12px; font-size: 1.25rem; font-family: "IBM Plex Mono", monospace; }
-    .feature-card p { margin: 0; color: #888; line-height: 1.6; }
-
-    .dashboard-preview { 
-      max-width: 1100px; 
-      margin: 100px auto; 
-      background: #0f0f0f; 
-      border: 1px solid rgba(255,255,255,0.05); 
-      border-radius: 32px; 
-      padding: 12px; 
-      box-shadow: 0 100px 200px rgba(0,0,0,0.8); 
-      position: relative;
-    }
-    .preview-inner {
-      background: #050505;
-      border-radius: 20px;
-      padding: 30px;
-      min-height: 400px;
-    }
-    .skeleton-header { display: flex; gap: 20px; margin-bottom: 40px; }
-    .sk-box { height: 100px; flex: 1; background: rgba(255,255,255,0.02); border-radius: 16px; border: 1px solid rgba(255,255,255,0.02); }
-    .sk-content { height: 200px; background: rgba(255,255,255,0.02); border-radius: 16px; }
-
-    .cta-overlay { 
-      position: absolute; 
-      inset: 0; 
-      background: rgba(5, 5, 5, 0.5); 
-      backdrop-filter: blur(8px); 
-      display: grid; 
-      place-items: center; 
-      border-radius: 32px;
-    }
-    .cta-card { 
-      background: rgba(20, 20, 20, 0.8); 
-      border: 1px solid rgba(255,255,255,0.1); 
-      padding: 60px; 
-      border-radius: 32px; 
-      text-align: center; 
-      box-shadow: 0 30px 60px rgba(0,0,0,0.5); 
-      max-width: 500px;
-    }
-
-    footer {
-      padding: 100px 5% 40px;
-      text-align: center;
-      border-top: 1px solid rgba(255,255,255,0.05);
-      color: #666;
-      font-size: 0.9rem;
-    }
-
-    @media (max-width: 900px) {
-      .features-grid { grid-template-columns: 1fr; }
-      .hero h2 { font-size: 3rem; }
+    @media (max-width: 768px) {
+      .hero-wrapper h1 { font-size: 2.5rem; }
+      .os-body { height: 400px; }
+      .mock-sidebar { display: none; }
+      .mock-stats { flex-direction: column; }
     }
   </style>
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2300ffa3'/><text x='50%' y='65%' font-family='Arial, sans-serif' font-size='50' font-weight='bold' fill='%23000' text-anchor='middle'>LI</text></svg>" type="image/svg+xml">
 </head>
 <body>
-  <div class="bg-blobs">
-    <div class="blob blob-1"></div>
-    <div class="blob blob-2"></div>
+
+  <div class="glow-bg">
+    <div class="glow-orb"></div>
   </div>
 
   <header>
     <div class="brand">
-      <div class="logo">LI</div>
-      <h1>Lead Intel</h1>
+      <div class="logo-mark">LI</div>
+      Lead Intel
     </div>
-    <div class="nav-buttons">
-      <a href="/login" class="btn btn-outline">Login</a>
-      <a href="/signup" class="btn btn-primary">Sign Up</a>
+    <div class="nav-links">
+      <a href="/login" class="btn btn-ghost">Sign In</a>
+      <a href="/signup" class="btn btn-glow">Get Started</a>
     </div>
   </header>
 
-  <section class="hero">
-    <div class="badge">V2.0 NOW LIVE - AI POWERED</div>
-    <h2>Build your sales <br> pipeline in minutes.</h2>
-    <p>Premium lead generation for modern agencies. Find businesses, extract contact details, and use AI to craft the perfect outreach angle.</p>
-    <div class="nav-buttons" style="justify-content: center;">
-      <a href="/signup" class="btn btn-primary" style="padding: 18px 48px; font-size: 1.1rem; border-radius: 18px;">Start Scraping for Free</a>
-    </div>
-  </section>
+  <main>
+    <section class="hero-wrapper">
+      <div class="pill">
+        <div class="pill-dot"></div>
+        V2.0 is Live &middot; Gemini AI
+      </div>
+      <h1>Dominate outbound with strictly verified AI leads.</h1>
+      <p>Stop wasting hours on manual research. Lead Intel agglomerates prospects across the web and uses deep learning models to instantly score, analyze, and construct outreach strategies.</p>
+    </section>
 
-  <div class="features-grid">
-    <div class="feature-card">
-      <div class="feature-icon">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-      </div>
-      <h3>Multi-Source Search</h3>
-      <p>Search across Google Maps, Search, and Jobs simultaneously to find the most relevant businesses.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-      </div>
-      <h3>Gemini AI Enrichment</h3>
-      <p>Automatically analyze leads with AI to determine their tech stack, needs, and score their quality.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-      </div>
-      <h3>Private Isolation</h3>
-      <p>Your data and API keys are yours alone. Full multi-user isolation with secure credential management.</p>
-    </div>
-  </div>
+    <!-- PROPER SMALL SYSTEM / macOS WINDOW UPGRADED -->
+    <div class="system-showcase">
+      <div class="os-window">
+        <div class="os-header">
+          <div class="os-dot red"></div>
+          <div class="os-dot yellow"></div>
+          <div class="os-dot green"></div>
+          <div class="os-domain">app.leadintel.io/dashboard</div>
+        </div>
+        <div class="os-body">
+          <div class="mock-sidebar">
+            <div class="mock-sb-item active">
+               <div class="mock-sb-inner1"></div><div class="mock-sb-inner2"></div>
+            </div>
+            <div class="mock-sb-item">
+               <div class="mock-sb-inner1"></div><div class="mock-sb-inner2"></div>
+            </div>
+            <div class="mock-sb-item">
+               <div class="mock-sb-inner1"></div><div class="mock-sb-inner2"></div>
+            </div>
+            <div class="mock-sb-item" style="margin-top: 40px; opacity: 0.3;">
+               <div class="mock-sb-inner1"></div><div class="mock-sb-inner2"></div>
+            </div>
+          </div>
+          
+          <div class="mock-main">
+            <!-- Simulated Stats Row -->
+            <div class="mock-stats">
+              <div class="mock-stat"><div class="mock-st-t1"></div><div class="mock-st-t2"></div></div>
+              <div class="mock-stat"><div class="mock-st-t1"></div><div class="mock-st-t2" style="width: 40%;"></div></div>
+              <div class="mock-stat"><div class="mock-st-t1"></div><div class="mock-st-t2" style="width: 80%;"></div></div>
+            </div>
+            
+            <!-- Simulated Leads Data Table -->
+            <div class="mock-table">
+              <div class="mock-row">
+                <div class="mock-cell-1" style="opacity: 0.5;"><div class="mock-line-main"></div></div>
+                <div class="mock-cell-2" style="background: transparent;"></div>
+              </div>
+              <div class="mock-row">
+                <div class="mock-cell-1"><div class="mock-avatar"></div><div class="mock-line-main"></div></div>
+                <div class="mock-cell-2"></div>
+                <div class="mock-badge"></div>
+                <div class="mock-cell-3"></div>
+              </div>
+              <div class="mock-row">
+                <div class="mock-cell-1"><div class="mock-avatar"></div><div class="mock-line-main" style="width: 60px;"></div></div>
+                <div class="mock-cell-2" style="width: 35%;"></div>
+                <div class="mock-badge" style="opacity:0.3; border-color:#fff;"></div>
+                <div class="mock-cell-3" style="width: 60px;"></div>
+              </div>
+              <div class="mock-row">
+                <div class="mock-cell-1"><div class="mock-avatar"></div><div class="mock-line-main" style="width: 120px;"></div></div>
+                <div class="mock-cell-2" style="width: 20%;"></div>
+                <div class="mock-badge"></div>
+                <div class="mock-cell-3"></div>
+              </div>
+              <div class="mock-row">
+                <div class="mock-cell-1"><div class="mock-avatar"></div><div class="mock-line-main"></div></div>
+                <div class="mock-cell-2"></div>
+                <div class="mock-badge" style="opacity:0.3; border-color:#fff;"></div>
+                <div class="mock-cell-3" style="width: 80px;"></div>
+              </div>
+              <div class="mock-row">
+                <div class="mock-cell-1"><div class="mock-avatar"></div><div class="mock-line-main" style="width: 90px;"></div></div>
+                <div class="mock-cell-2" style="width: 30%;"></div>
+                <div class="mock-badge"></div>
+                <div class="mock-cell-3" style="width: 120px;"></div>
+              </div>
+            </div>
+          </div>
 
-  <div class="dashboard-preview">
-    <div class="preview-inner">
-      <div class="skeleton-header">
-        <div class="sk-box"></div><div class="sk-box"></div><div class="sk-box"></div>
-      </div>
-      <div class="sk-content"></div>
-    </div>
-    <div class="cta-overlay">
-      <div class="cta-card">
-        <h3 style="margin: 0 0 16px; font-size: 2rem; font-weight: 700;">Scale your outreach.</h3>
-        <p style="margin: 0 0 32px; color: #a0a0a0; font-size: 1.1rem;">Stop wasting hours on manual research. Let AI build your lead list today.</p>
-        <div style="display: flex; gap: 16px; justify-content: center;">
-          <a href="/signup" class="btn btn-primary">Create Account</a>
-          <a href="/login" class="btn btn-outline">Sign In</a>
+          <!-- Embedded Overlay INSIDE the OS window -->
+          <div class="cta-overlay">
+             <div class="cta-card">
+                <h3>Scale your outreach.</h3>
+                <p>Stop wasting hours on manual research. Let AI build your lead list today.</p>
+                <div class="cta-group" style="margin-top: 10px;">
+                   <a href="/signup" class="btn-massive">Start Scraping for Free</a>
+                   <div class="cta-subtext">No credit card required. Instant full access.</div>
+                </div>
+             </div>
+          </div>
+          
         </div>
       </div>
     </div>
-  </div>
+
+    <section class="features">
+      <div class="features-header">
+        <h2>Unfair advantage. Ship faster.</h2>
+      </div>
+      <div class="grid">
+        <div class="card">
+          <div class="card-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
+          </div>
+          <h3>Aggressive Scraping</h3>
+          <p>Scan Google Maps, standard Search, and Google Jobs simultaneously. Input your industries and instantly accumulate verified leads.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+          </div>
+          <h3>Gemini Intelligence</h3>
+          <p>Our integration with Gemini AI automatically evaluates leads, deducing their tech stacks, computing quality scores, and writing customized outreach.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+          </div>
+          <h3>Private & Secure</h3>
+          <p>Maintain complete separation of your leads and data. Use your own API keys. Designed thoroughly for robust multi-user scaling.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
 
   <footer>
-    &copy; 2026 Lead Intel Agency Pro. All rights reserved. Built for high-performance sales teams.
+    <div class="brand">
+      <div class="logo-mark" style="width: 24px; height: 24px; font-size: 0.6rem;">LI</div>
+      Lead Intel
+    </div>
+    <div>&copy; 2026 Lead Intel Agency Pro. All rights reserved.</div>
   </footer>
+
 </body>
 </html>

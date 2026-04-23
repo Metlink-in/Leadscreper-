@@ -46,7 +46,7 @@ def generate_csv(leads: List[Lead], export_dir: str, filename: str) -> str:
         "keywords_matched",
     ]
     with path.open("w", encoding="utf-8", newline="") as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames, extrasaction='ignore')
         writer.writeheader()
         for lead in leads:
             data = lead.model_dump()

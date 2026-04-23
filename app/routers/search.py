@@ -26,10 +26,13 @@ async def search(request: SearchRequest, http_request: Request, user = Depends(r
     )
     
     api_keys = {
-        "search_api_key": user.get("search_api_key") or settings.search_api_key,
-        "gemini_api_key": user.get("gemini_api_key") or settings.gemini_api_key,
-        "openai_api_key": user.get("openai_api_key") or settings.openai_api_key,
+        "search_api_key": user.get("search_api_key"),
+        "gemini_api_key": user.get("gemini_api_key"),
+        "openai_api_key": user.get("openai_api_key"),
     }
+    
+    if not api_keys["search_api_key"]:
+        raise HTTPException(status_code=400, detail="SearchAPI Key is missing. Please add it in your Settings.")
 
     try:
         max_results = min(request.max_results or settings.max_results_per_source, settings.max_results_per_source)

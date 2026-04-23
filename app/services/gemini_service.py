@@ -180,7 +180,7 @@ async def enrich_lead(lead: Lead, api_key: Optional[str] = None) -> Lead:
 
 async def enrich_leads(leads: List[Lead], api_key: Optional[str] = None) -> List[Lead]:
     if not leads: return leads
-    semaphore = asyncio.Semaphore(2)
+    semaphore = asyncio.Semaphore(5)
     async def _enrich(lead: Lead) -> Lead:
         async with semaphore:
             return await enrich_lead(lead, api_key=api_key)

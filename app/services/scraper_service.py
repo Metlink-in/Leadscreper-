@@ -197,10 +197,38 @@ async def scrape_all(
                     lead = _normalize_item(item, category, industry, country, city, keywords, user_id)
                     if lead: leads.append(lead)
 
+    # Deduplicate leads based on website or name
+    unique_leads = []
+    seen = set()
+    for lead in leads:
+        identifier = lead.website.lower().strip() if lead.website else lead.name.lower().strip()
+        if identifier not in seen:
+            seen.add(identifier)
+            unique_leads.append(lead)
+    
+    leads = unique_leads
+
     if enable_ai and leads:
+        # Prioritize leads with contact info or websites to enrich only the best 25 leads
+        def lead_quality_score(l):
+            score = 0
+            if l.email: score += 3
+            if l.phone: score += 2
+            if l.website: score += 2
+            if l.post_url: score += 1
+            if l.platform: score += 1
+            return score
+            
+        leads.sort(key=lead_quality_score, reverse=True)
+        
+        # Take the top 25 leads to enrich to save time and API limits
+        leads_to_enrich = leads[:25]
+        other_leads = leads[25:]
+        
         try:
             gemini_service = importlib.import_module("app.services.gemini_service")
-            leads = await gemini_service.enrich_leads(leads, api_key=gemini_key)
+            enriched_leads = await gemini_service.enrich_leads(leads_to_enrich, api_key=gemini_key)
+            leads = enriched_leads + other_leads
         except Exception as exc:
             logger.warning("[AI] Enrichment failed: %s", exc)
 

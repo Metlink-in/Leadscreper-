@@ -1308,7 +1308,6 @@
       }
     }
 
-    let isSearching = false;
     async function performSearch() {
       if (isSearching) return;
       if (state.selectedCategories.size === 0) {
@@ -1335,33 +1334,98 @@
         max_results: 50,
         enable_ai: state.enableAi,
       };
+
+      const loadingText = elements.loadingOverlay.querySelector("div:last-child");
+      loadingText.textContent = state.enableAi ? "AI enrichment active. This may take 30-60 seconds..." : "Searching for leads...";
       elements.loadingOverlay.classList.remove("hidden");
+
       try {
         const response = await fetch("/api/search", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
+        
         if (!response.ok) {
           const error = await response.json().catch(() => null);
           throw new Error(error?.detail || "Search failed");
         }
+        
         const data = await response.json();
-        const newLeads = data.leads.map((lead) => ({ ...lead, isNew: true }));
-        state.leads = [...newLeads, ...state.leads.map((lead) => ({ ...lead, isNew: false }))];
         state.searchId = data.search_id;
-        state.page = 1;
-        filterByCategory('all');
-        showToast(`Search completed with ${data.total} leads.`);
+
+        if (data.status === "processing") {
+          pollSearchResults(data.search_id);
+        } else {
+          // Fallback if background tasks not supported/failed
+          finishSearch(data);
+        }
       } catch (error) {
         showToast(error.message || "Unable to complete search.");
-      } finally {
         elements.loadingOverlay.classList.add("hidden");
         elements.searchButton.disabled = false;
         elements.searchButton.style.opacity = "1";
         elements.searchButton.style.cursor = "pointer";
         isSearching = false;
       }
+    }
+
+    async function pollSearchResults(searchId) {
+      const loadingText = elements.loadingOverlay.querySelector("div:last-child");
+      let attempts = 0;
+      const maxAttempts = 60; // 3 minutes total
+
+      const interval = setInterval(async () => {
+        attempts++;
+        if (attempts > maxAttempts) {
+          clearInterval(interval);
+          handleSearchError("Search timed out. Check History later.");
+          return;
+        }
+
+        try {
+          const res = await fetch(`/api/history/${searchId}`);
+          if (!res.ok) return; // Keep trying
+          
+          const data = await res.json();
+          if (data.status === "completed") {
+            clearInterval(interval);
+            finishSearch(data);
+          } else if (data.status === "failed") {
+            clearInterval(interval);
+            handleSearchError(data.error || "Search task failed.");
+          } else {
+            // Still processing
+            loadingText.textContent = `Processing leads... (Attempt ${attempts})`;
+          }
+        } catch (e) {
+          console.error("Polling error:", e);
+        }
+      }, 3000);
+    }
+
+    function finishSearch(data) {
+      const newLeads = data.leads.map((lead) => ({ ...lead, isNew: true }));
+      state.leads = [...newLeads, ...state.leads.map((lead) => ({ ...lead, isNew: false }))];
+      state.searchId = data.search_id;
+      state.page = 1;
+      filterByCategory('all');
+      showToast(`Search completed with ${data.leads.length} leads.`);
+      
+      elements.loadingOverlay.classList.add("hidden");
+      elements.searchButton.disabled = false;
+      elements.searchButton.style.opacity = "1";
+      elements.searchButton.style.cursor = "pointer";
+      isSearching = false;
+    }
+
+    function handleSearchError(message) {
+      showToast(message);
+      elements.loadingOverlay.classList.add("hidden");
+      elements.searchButton.disabled = false;
+      elements.searchButton.style.opacity = "1";
+      elements.searchButton.style.cursor = "pointer";
+      isSearching = false;
     }
 
     async function handleExport(format) {

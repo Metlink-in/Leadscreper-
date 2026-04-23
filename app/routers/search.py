@@ -5,7 +5,7 @@ from datetime import datetime
 from uuid import uuid4
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Request, Depends
+from fastapi import APIRouter, HTTPException, Request, Depends, BackgroundTasks
 
 from app.config import settings
 from app.models.search import SearchRequest
@@ -18,22 +18,8 @@ from app.services.dependencies import require_user
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
-@router.post("/api/search")
-async def search(request: SearchRequest, http_request: Request, user = Depends(require_user)) -> dict:
-    logger.info(
-        "[REQUEST] POST /api/search | user=%s | industries=%s | categories=%s",
-        user["email"], request.industries, request.categories,
-    )
-    
-    api_keys = {
-        "search_api_key": user.get("search_api_key"),
-        "gemini_api_key": user.get("gemini_api_key"),
-        "openai_api_key": user.get("openai_api_key"),
-    }
-    
-    if not api_keys["search_api_key"]:
-        raise HTTPException(status_code=400, detail="SearchAPI Key is missing. Please add it in your Settings.")
-
+async def run_search_task(search_id: str, request: SearchRequest, user_id: str, api_keys: dict):
+    """Background task to perform the search and save results."""
     try:
         max_results = min(request.max_results or settings.max_results_per_source, settings.max_results_per_source)
         leads = await scrape_all(
@@ -45,68 +31,91 @@ async def search(request: SearchRequest, http_request: Request, user = Depends(r
             platforms=request.platforms,
             max_results=max_results,
             enable_ai=request.enable_ai,
-            user_id=str(user["_id"]),
+            user_id=user_id,
             api_keys=api_keys
         )
-    except APIError as e:
-        logger.error(f"Search API failure: {e.message}")
-        raise HTTPException(status_code=e.status_code, detail=e.message)
+        
+        scored_leads = [lead for lead in leads if lead.ai_score is not None]
+        unscored_leads = [lead for lead in leads if lead.ai_score is None]
+        scored_leads.sort(key=lambda x: x.ai_score or 0, reverse=True)
+        sorted_leads = scored_leads + unscored_leads
+
+        db_search_data = {
+            "created_at": datetime.utcnow().isoformat(),
+            "meta": {
+                "categories": request.categories,
+                "industries": request.industries,
+                "country": request.country,
+                "city": request.city,
+                "keywords": request.keywords,
+                "platforms": request.platforms,
+                "max_results": max_results,
+                "enable_ai": request.enable_ai,
+            },
+            "leads": [lead.model_dump() for lead in sorted_leads],
+            "status": "completed",
+            "summary": {
+                "high_priority_leads": len([l for l in scored_leads if (l.ai_score or 0) >= 70]),
+                "leads_with_contacts": len([l for l in sorted_leads if l.email or l.phone]),
+                "total_leads": len(sorted_leads)
+            }
+        }
+        await db_service.save_search(search_id, db_search_data, user_id=user_id)
+        logger.info("[TASK] Search %s completed successfully.", search_id)
+        
     except Exception as exc:
-        logger.error("[REQUEST] /api/search failed with error: %s", exc, exc_info=True)
-        raise HTTPException(status_code=500, detail=str(exc))
+        logger.error("[TASK] Search %s failed: %s", search_id, exc, exc_info=True)
+        # Update status to failed so UI can stop polling
+        await db_service.save_search(search_id, {
+            "status": "failed",
+            "error": str(exc),
+            "created_at": datetime.utcnow().isoformat()
+        }, user_id=user_id)
 
-    scored_leads = [lead for lead in leads if lead.ai_score is not None]
-    unscored_leads = [lead for lead in leads if lead.ai_score is None]
-    scored_leads.sort(key=lambda x: x.ai_score or 0, reverse=True)
-    sorted_leads = scored_leads + unscored_leads
-
+@router.post("/api/search")
+async def search(request: SearchRequest, background_tasks: BackgroundTasks, user = Depends(require_user)) -> dict:
+    logger.info(
+        "[REQUEST] POST /api/search | user=%s | industries=%s | categories=%s",
+        user["email"], request.industries, request.categories,
+    )
+    
+    api_keys = {
+        "search_api_key": user.get("search_api_key"),
+        "gemini_api_key": user.get("gemini_api_key"),
+        "openai_api_key": user.get("openai_api_key"),
+    }
+    
     search_id = uuid4().hex
-    search_data = {
+    
+    # Initialize placeholder in DB
+    placeholder = {
+        "status": "processing",
         "created_at": datetime.utcnow().isoformat(),
-        "leads": sorted_leads,
         "meta": {
             "categories": request.categories,
             "industries": request.industries,
             "country": request.country,
             "city": request.city,
             "keywords": request.keywords,
-            "platforms": request.platforms,
-            "max_results": max_results,
             "enable_ai": request.enable_ai,
         },
+        "leads": []
     }
-
-    db_search_data = {
-        "created_at": search_data["created_at"],
-        "meta": search_data["meta"],
-        "leads": [lead.model_dump() for lead in sorted_leads],
-        "summary": {
-            "high_priority_leads": len([l for l in scored_leads if (l.ai_score or 0) >= 70]),
-            "leads_with_contacts": len([l for l in sorted_leads if l.email or l.phone]),
-            "total_leads": len(sorted_leads)
-        }
-    }
-    await db_service.save_search(search_id, db_search_data, user_id=str(user["_id"]))
-
-    leads_data = []
-    for lead in sorted_leads[:max_results]:
-        lead_dict = lead.model_dump()
-        lead_dict["contact_info_available"] = bool(lead.email or lead.phone)
-        lead_dict["has_website"] = bool(lead.website)
-        lead_dict["priority_score"] = lead.ai_score or 0
-        leads_data.append(lead_dict)
-
+    await db_service.save_search(search_id, placeholder, user_id=str(user["_id"]))
+    
+    # Start background task
+    background_tasks.add_task(
+        run_search_task, 
+        search_id, 
+        request, 
+        str(user["_id"]), 
+        api_keys
+    )
+    
     return {
         "search_id": search_id,
-        "total": len(sorted_leads),
-        "leads": leads_data,
-        "summary": {
-            "high_priority_leads": len([l for l in scored_leads if (l.ai_score or 0) >= 70]),
-            "medium_priority_leads": len([l for l in scored_leads if 40 <= (l.ai_score or 0) < 70]),
-            "low_priority_leads": len([l for l in scored_leads if (l.ai_score or 0) < 40]),
-            "leads_with_contacts": len([l for l in sorted_leads if l.email or l.phone]),
-            "leads_with_websites": len([l for l in sorted_leads if l.website]),
-        }
+        "status": "processing",
+        "message": "Search started in background"
     }
 
 @router.get("/api/history")
@@ -127,10 +136,11 @@ async def get_history_detail(search_id: str, user = Depends(require_user)) -> di
             
         return {
             "search_id": search_id,
-            "created_at": data["created_at"],
-            "meta": data["meta"],
-            "total": len(data["leads"]),
-            "leads": data["leads"]
+            "created_at": data.get("created_at"),
+            "meta": data.get("meta"),
+            "status": data.get("status", "completed"), # Default to completed for old records
+            "total": len(data.get("leads", [])),
+            "leads": data.get("leads", [])
         }
     except HTTPException:
         raise

@@ -713,7 +713,10 @@
         <label><span>Enable AI Enrichment</span></label>
         <input id="aiToggle" type="checkbox" checked />
       </div>
-      <button class="button" id="searchButton">Search leads</button>
+      <div style="display: flex; gap: 10px;">
+        <button class="button" id="searchButton" style="flex: 1;">Search leads</button>
+        <button class="button" id="resetButton" style="background: #222; color: #fff;" title="Clear search and start over">Reset</button>
+      </div>
       <div class="resizer" id="sidebarResizer"></div>
     </aside>
     <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle Sidebar">
@@ -889,6 +892,7 @@
       keywordsInput: document.getElementById("keywordsInput"),
       aiToggle: document.getElementById("aiToggle"),
       searchButton: document.getElementById("searchButton"),
+      resetButton: document.getElementById("resetButton"),
       statusText: document.getElementById("statusText"),
       statTotal: document.getElementById("statTotal"),
       statCat1: document.getElementById("statCat1"),
@@ -1042,14 +1046,8 @@
         if (industries.includes(lead.industry)) return false;
       }
 
-      if (state.country && lead.location && !lead.location.toLowerCase().includes(state.country.toLowerCase())) return false;
-      if (state.city && lead.location && !lead.location.toLowerCase().includes(state.city.toLowerCase())) return false;
-      
-      if (state.keywords) {
-        const terms = state.keywords.toLowerCase().split(",").map((term) => term.trim()).filter(Boolean);
-        const haystack = [lead.name, lead.description, lead.source, lead.industry, lead.location].join(" ").toLowerCase();
-        if (!terms.every((term) => haystack.includes(term))) return false;
-      }
+      // Backend-specific location and keyword inputs are removed from frontend filtering 
+      // to prevent falsely hiding valid Google Maps results that have slight variations.
 
 
       
@@ -1344,6 +1342,7 @@
     });
 
     elements.searchButton.addEventListener("click", performSearch);
+    elements.resetButton.addEventListener("click", () => window.location.href = "/");
     elements.exportButtons.forEach((button) => {
       button.addEventListener("click", () => handleExport(button.dataset.format));
     });
